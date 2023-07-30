@@ -11,8 +11,11 @@
 #define DISPLAY_H_
 
 #include <lvgl.h>
-#include <TFT_eSPI.h>
-#include <CST816S.h>
+
+#ifndef GOSN_SIMULATOR
+    #include <TFT_eSPI.h>
+    #include <CST816S.h>
+#endif
 
 #include "config.h"
 

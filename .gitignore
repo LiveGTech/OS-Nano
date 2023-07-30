@@ -1,2 +1,11 @@
 .pio
 .vscode
+installdev
+CMakeFiles
+lib
+build
+
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+*.a

@@ -15,9 +15,11 @@ using namespace display;
 static lv_disp_draw_buf_t drawBuffer;
 static lv_color_t buffer[GOSN_SCREEN_WIDTH * 10];
 
-TFT_eSPI tft = TFT_eSPI(GOSN_SCREEN_WIDTH, GOSN_SCREEN_HEIGHT);
+#ifndef GOSN_SIMULATOR
+    TFT_eSPI tft = TFT_eSPI(GOSN_SCREEN_WIDTH, GOSN_SCREEN_HEIGHT);
 
-CST816S touch(8, 9, 10, 7);
+    CST816S touch(8, 9, 10, 7);
+#endif
 
 bool display::touchIsDown = false;
 unsigned int display::touchX = 0;
@@ -27,10 +29,12 @@ void flush(lv_disp_drv_t* displayDriver, const lv_area_t* renderArea, lv_color_t
     uint32_t width = renderArea->x2 - renderArea->x1 + 1;
     uint32_t height = renderArea->y2 - renderArea->y1 + 1;
 
-    tft.startWrite();
-    tft.setAddrWindow(renderArea->x1, renderArea->y1, width, height);
-    tft.pushColors((uint16_t*)&colours->full, width * height, true);
-    tft.endWrite();
+    #ifndef GOSN_SIMULATOR
+        tft.startWrite();
+        tft.setAddrWindow(renderArea->x1, renderArea->y1, width, height);
+        tft.pushColors((uint16_t*)&colours->full, width * height, true);
+        tft.endWrite();
+    #endif
 
     lv_disp_flush_ready(displayDriver);
 }
@@ -49,10 +53,12 @@ void readTouch(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
 void display::init() {
     lv_init();
 
-    tft.begin();
-    tft.setRotation(0);
+    #ifndef GOSN_SIMULATOR
+        tft.begin();
+        tft.setRotation(0);
 
-    touch.begin();
+        touch.begin();
+    #endif
 
     lv_disp_draw_buf_init(&drawBuffer, buffer, NULL, GOSN_SCREEN_WIDTH * 10);
 
@@ -78,11 +84,13 @@ void display::init() {
 }
 
 void display::update(unsigned int millisecondsPassed) {
-    if (touch.available()) {
-        display::touchIsDown = touch.data.event != 1;
-        display::touchX = touch.data.x;
-        display::touchY = touch.data.y;
-    }
+    #ifndef GOSN_SIMULATOR
+        if (touch.available()) {
+            display::touchIsDown = touch.data.event != 1;
+            display::touchX = touch.data.x;
+            display::touchY = touch.data.y;
+        }
+    #endif
 
     lv_timer_handler();
     lv_tick_inc(millisecondsPassed);
