@@ -10,6 +10,10 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
+#ifdef GOSL_SIMULATOR
+    #include <emscripten.h>
+#endif
+
 #include "config.h"
 #include "display.h"
 
@@ -89,5 +93,9 @@ void setup() {
 void loop() {
     display::update(1);
 
-    delay(1);
+    #ifndef GOSL_SIMULATOR
+        delay(1);
+    #else
+        emscripten_sleep(1);
+    #endif
 }
