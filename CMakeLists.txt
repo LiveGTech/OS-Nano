@@ -28,7 +28,14 @@ file(GLOB SOURCES
 )
 
 add_executable(os-nano ${SOURCES})
-add_definitions(-DGOSN_SIMULATOR -DEPOXY_DUINO -sASYNCIFY -Wno-unused-command-line-argument)
+
+add_definitions(
+    -DGOSN_SIMULATOR
+)
+
+target_compile_options(os-nano PRIVATE
+    -Wno-unused-command-line-argument
+)
 
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/installdev/EpoxyDuino/cores/epoxy)
