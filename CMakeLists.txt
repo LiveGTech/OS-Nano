@@ -42,3 +42,5 @@ target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/installdev/EpoxyD
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/.pio/libdeps/um_feathers3/lvgl)
 
 target_link_libraries(os-nano PRIVATE EpoxyDuino lvgl::lvgl)
+
+set_target_properties(lvgl_examples lvgl_demos PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
