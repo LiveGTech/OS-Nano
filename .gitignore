@@ -1,6 +1,5 @@
 .pio
 .vscode
-installdev
 CMakeFiles
 lib
 build

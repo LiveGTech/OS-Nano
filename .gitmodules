@@ -1,0 +1,6 @@
+[submodule "installdev/EpoxyDuino"]
+	path = installdev/EpoxyDuino
+	url = https://github.com/bxparks/EpoxyDuino
+[submodule "installdev/emsdk"]
+	path = installdev/emsdk
+	url = https://github.com/juj/emsdk
