@@ -22,6 +22,8 @@ add_library(EpoxyDuino STATIC ${EPOXY_SOURCES})
 
 target_include_directories(EpoxyDuino PUBLIC ${CMAKE_SOURCE_DIR}/installdev/EpoxyDuino/cores/epoxy)
 
+add_library(duktape STATIC installdev/duktape/src/duktape.c)
+
 file(GLOB SOURCES
     ${CMAKE_SOURCE_DIR}/include/*.h
     ${CMAKE_SOURCE_DIR}/src/*.cpp
@@ -34,13 +36,16 @@ add_definitions(
 )
 
 target_compile_options(os-nano PRIVATE
+    -pthread
     -Wno-unused-command-line-argument
+    -Wl,-pthread
 )
 
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/installdev/EpoxyDuino/cores/epoxy)
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/.pio/libdeps/um_feathers3/lvgl)
+target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/installdev/duktape/src)
 
-target_link_libraries(os-nano PRIVATE EpoxyDuino lvgl::lvgl)
+target_link_libraries(os-nano PRIVATE EpoxyDuino lvgl::lvgl duktape)
 
 set_target_properties(lvgl_examples lvgl_demos PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)

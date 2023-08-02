@@ -15,6 +15,7 @@
 #endif
 
 #include "config.h"
+#include "datatypes.h"
 #include "display.h"
 
 static int i = 0;
@@ -88,6 +89,38 @@ void setup() {
     lv_timer_create(updateCounterTimer, 5, NULL);
 
     Serial.println("Setup done");
+
+    dataTypes::List<int> numbers;
+
+    int thing = 2;
+
+    numbers.push(store(1));
+    numbers.push(&thing);
+    numbers.push(store(3));
+
+    numbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
+
+    Serial.print("Last item popped: ");
+    Serial.println(discard(numbers.pop()));
+
+    // TODO: Fix memory out-of-bounds error
+
+    discard(numbers.pop());
+
+    numbers.push(store(3));
+    numbers.push(store(5));
+
+    numbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
 }
 
 void loop() {
