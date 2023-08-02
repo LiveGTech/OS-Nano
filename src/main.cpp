@@ -108,7 +108,7 @@ void setup() {
     Serial.print("Last item popped: ");
     Serial.println(discard(numbers.pop()));
 
-    numbers.pop();
+    discard(numbers.pop());
 
     numbers.push(store(3));
     numbers.push(store(5));
@@ -133,6 +133,26 @@ void setup() {
     Serial.println("");
     Serial.print("Length: ");
     Serial.println(numbers.length());
+
+    numbers.insert(1, store(3));
+    numbers.insert(3, store(7));
+
+    numbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
+
+    Serial.print("Removed at index 2: ");
+    Serial.println(discard(numbers.remove(2)));
+
+    numbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
 }
 
 void loop() {

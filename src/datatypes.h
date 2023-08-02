@@ -23,10 +23,10 @@ namespace dataTypes {
 
     template<typename T> class StoredValue {
         public:
+            T value;
+
             StoredValue<T>(T valueToStore);
             ~StoredValue<T>();
-
-            T value;
     };
 
     template<typename T> class List {
@@ -43,6 +43,8 @@ namespace dataTypes {
             T* pop();
             Count unshift(T* valuePtr);
             T* shift();
+            Count insert(Count index, T* valuePtr);
+            T* remove(Count index);
             void forEach(IterationCallback iterationCallback);
 
         private:

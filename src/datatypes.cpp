@@ -140,12 +140,15 @@ template<typename T> T* dataTypes::List<T>::pop() {
         return item->valuePtr;
     }
 
-    auto lastItem = getLastItem();
+    auto lastItemPtr = getLastItem();
+    auto lastItemValuePtr = lastItemPtr->valuePtr;
 
     getItemAtIndex(-2)->nextItemPtr = nullptr;
     _length--;
 
-    return lastItem->valuePtr;
+    delete lastItemPtr;
+
+    return lastItemValuePtr;
 }
 
 template<typename T> Count dataTypes::List<T>::unshift(T* valuePtr) {
@@ -178,11 +181,74 @@ template<typename T> T* dataTypes::List<T>::shift() {
 
     _length--;
 
-    auto item = _firstItemPtr;
+    auto itemPtr = _firstItemPtr;
+    auto itemValuePtr = itemPtr->valuePtr;
 
     _firstItemPtr = _firstItemPtr->nextItemPtr;
 
-    return item->valuePtr;
+    delete itemPtr;
+
+    return itemValuePtr;
+}
+
+template<typename T> Count dataTypes::List<T>::insert(Count index, T* valuePtr) {
+    if (index == 0) {
+        return unshift(valuePtr);
+    }
+
+    if (index == _length) {
+        return push(valuePtr);
+    }
+
+    auto previousItemPtr = getItemAtIndex(index - 1);
+
+    if (!previousItemPtr) {
+        return _length;
+    }
+
+    _length++;
+
+    auto itemPtr = new _ListItem<T> {
+        .valuePtr = valuePtr,
+        .nextItemPtr = previousItemPtr->nextItemPtr
+    };
+
+    previousItemPtr->nextItemPtr = itemPtr;
+
+    return _length;
+}
+
+template<typename T> T* dataTypes::List<T>::remove(Count index) {
+    if (index == 0) {
+        return shift();
+    }
+
+    if (index == _length - 1) {
+        return pop();
+    }
+
+    auto previousItemPtr = getItemAtIndex(index - 1);
+
+    if (!previousItemPtr) {
+        return nullptr;
+    }
+
+    auto itemPtr = previousItemPtr->nextItemPtr;
+
+    if (!itemPtr) {
+        return nullptr;
+    }
+
+    _length--;
+
+    auto itemValuePtr = itemPtr->valuePtr;
+    auto nextItemPtr = itemPtr->nextItemPtr;
+
+    previousItemPtr->nextItemPtr = nextItemPtr;
+
+    delete itemPtr;
+
+    return itemValuePtr;
 }
 
 template<typename T> void dataTypes::List<T>::forEach(IterationCallback iterationCallback) {
