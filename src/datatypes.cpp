@@ -102,6 +102,22 @@ template<typename T> dataTypes::_ListItem<T>* dataTypes::List<T>::getLastItem() 
     return previousItemPtr;
 }
 
+template<typename T> void dataTypes::List<T>::start() {
+    _currentItemPtr = _firstItemPtr;
+}
+
+template<typename T> T* dataTypes::List<T>::next() {
+    auto itemPtr = _currentItemPtr;
+
+    if (!_currentItemPtr) {
+        return nullptr;
+    }
+
+    _currentItemPtr = _currentItemPtr->nextItemPtr;
+
+    return itemPtr->valuePtr;
+}
+
 template<typename T> Count dataTypes::List<T>::length() {
     return _length;
 }
@@ -251,6 +267,22 @@ template<typename T> T* dataTypes::List<T>::remove(Count index) {
     return itemValuePtr;
 }
 
+template<typename T> int dataTypes::List<T>::indexOf(T* valuePtr) {
+    auto currentItemPtr = _firstItemPtr;
+    int index = 0;
+
+    while (currentItemPtr) {
+        if (currentItemPtr->valuePtr == valuePtr) {
+            return index;
+        }
+
+        currentItemPtr = currentItemPtr->nextItemPtr;
+        index++;
+    }
+
+    return -1;
+}
+
 template<typename T> void dataTypes::List<T>::forEach(IterationCallback iterationCallback) {
     auto currentItemPtr = _firstItemPtr;
     Count index = 0;
@@ -261,6 +293,56 @@ template<typename T> void dataTypes::List<T>::forEach(IterationCallback iteratio
         currentItemPtr = currentItemPtr->nextItemPtr;
         index++;
     }
+}
+
+template<typename T> dataTypes::List<T> dataTypes::List<T>::map(MappingFunction mappingFunction) {
+    List<T> newList;
+    auto currentItemPtr = _firstItemPtr;
+    Count index = 0;
+
+    while (currentItemPtr) {
+        newList.push(mappingFunction(currentItemPtr->valuePtr, index));
+
+        currentItemPtr = currentItemPtr->nextItemPtr;
+        index++;
+    }
+
+    return newList;
+}
+
+template<typename T> dataTypes::List<T> dataTypes::List<T>::filter(FilteringFunction filteringFunction) {
+    List<T> newList;
+    auto currentItemPtr = _firstItemPtr;
+    Count index = 0;
+
+    while (currentItemPtr) {
+        if (filteringFunction(currentItemPtr->valuePtr, index)) {
+            newList.push(currentItemPtr->valuePtr);
+        }
+
+        currentItemPtr = currentItemPtr->nextItemPtr;
+        index++;
+    }
+
+    return newList;
+}
+
+template<typename T> dataTypes::List<T> dataTypes::List<T>::concat(dataTypes::List<T> otherList) {
+    List<T> newList;
+
+    start();
+
+    while (auto itemPtr = next()) {
+        newList.push(itemPtr);
+    }
+
+    otherList.start();
+
+    while (auto itemPtr = otherList.next()) {
+        newList.push(itemPtr);
+    }
+
+    return newList;
 }
 
 template class dataTypes::StoredValue<int>;

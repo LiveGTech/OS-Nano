@@ -32,12 +32,16 @@ namespace dataTypes {
     template<typename T> class List {
         public:
             typedef void (*IterationCallback)(T* itemPtr, Count index);
+            typedef T* (*MappingFunction)(T* itemPtr, Count index);
+            typedef bool (*FilteringFunction)(T* itemPtr, Count index);
 
             List<T>();
             ~List<T>();
 
             T* operator[](int index);
 
+            void start();
+            T* next();
             Count length();
             Count push(T* valuePtr);
             T* pop();
@@ -45,10 +49,15 @@ namespace dataTypes {
             T* shift();
             Count insert(Count index, T* valuePtr);
             T* remove(Count index);
+            int indexOf(T* valuePtr);
             void forEach(IterationCallback iterationCallback);
+            List<T> map(MappingFunction mappingFunction);
+            List<T> filter(FilteringFunction filteringFunction);
+            List<T> concat(List<T> otherList);
 
         private:
             _ListItem<T>* _firstItemPtr;
+            _ListItem<T>* _currentItemPtr;
             Count _length;
 
             _ListItem<T>* getItemAtIndex(int index);

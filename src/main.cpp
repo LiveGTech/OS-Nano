@@ -153,6 +153,30 @@ void setup() {
     });
 
     Serial.println("");
+
+    dataTypes::List<int> multipliedNumbers = numbers.map([] (int* valuePtr, Count index) {
+        return store(*valuePtr * 2);
+    });
+
+    multipliedNumbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
+
+    dataTypes::List<int> combinedNumbers = numbers.concat(multipliedNumbers);
+
+    dataTypes::List<int> filteredNumbers = combinedNumbers.filter([] (int* valuePtr, Count index) {
+        return *valuePtr < 7;
+    });
+
+    filteredNumbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
 }
 
 void loop() {
