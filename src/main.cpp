@@ -108,9 +108,7 @@ void setup() {
     Serial.print("Last item popped: ");
     Serial.println(discard(numbers.pop()));
 
-    // TODO: Fix memory out-of-bounds error
-
-    discard(numbers.pop());
+    numbers.pop();
 
     numbers.push(store(3));
     numbers.push(store(5));
@@ -121,6 +119,20 @@ void setup() {
     });
 
     Serial.println("");
+
+    Serial.print("First item shifted: ");
+    Serial.println(discard(numbers.shift()));
+
+    numbers.unshift(store(1));
+
+    numbers.forEach([] (int* valuePtr, Count index) {
+        Serial.print(*valuePtr);
+        Serial.print(" ");
+    });
+
+    Serial.println("");
+    Serial.print("Length: ");
+    Serial.println(numbers.length());
 }
 
 void loop() {

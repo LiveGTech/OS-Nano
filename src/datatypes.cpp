@@ -32,6 +32,7 @@ template<typename T> dataTypes::StoredValue<T>::~StoredValue() {}
 
 template<typename T> dataTypes::List<T>::List() {
     _firstItemPtr = nullptr;
+    _length = 0;
 }
 
 template<typename T> dataTypes::List<T>::~List() {
@@ -56,7 +57,7 @@ template<typename T> dataTypes::_ListItem<T>* dataTypes::List<T>::getItemAtIndex
     }
 
     if (index < 0) {
-        int resolvedIndex = length() + index;
+        int resolvedIndex = _length + index;
 
         if (resolvedIndex < 0) {
             return nullptr;
@@ -85,18 +86,6 @@ template<typename T> T* dataTypes::List<T>::operator[](int index) {
     return item->valuePtr;
 }
 
-template<typename T> Count dataTypes::List<T>::length() {
-    Count _length = 0;
-    auto currentItemPtr = _firstItemPtr;
-
-    while (currentItemPtr) {
-        currentItemPtr = currentItemPtr->nextItemPtr;
-        _length++;
-    }
-
-    return _length;
-}
-
 template<typename T> dataTypes::_ListItem<T>* dataTypes::List<T>::getLastItem() {
     if (!_firstItemPtr) {
         return nullptr;
@@ -113,11 +102,17 @@ template<typename T> dataTypes::_ListItem<T>* dataTypes::List<T>::getLastItem() 
     return previousItemPtr;
 }
 
+template<typename T> Count dataTypes::List<T>::length() {
+    return _length;
+}
+
 template<typename T> Count dataTypes::List<T>::push(T* valuePtr) {
     auto itemPtr = new _ListItem<T> {
         .valuePtr = valuePtr,
         .nextItemPtr = nullptr
     };
+
+    _length++;
 
     if (!_firstItemPtr) {
         _firstItemPtr = itemPtr;
@@ -127,13 +122,15 @@ template<typename T> Count dataTypes::List<T>::push(T* valuePtr) {
 
     getLastItem()->nextItemPtr = itemPtr;
 
-    return length();
+    return _length;
 }
 
 template<typename T> T* dataTypes::List<T>::pop() {
     if (!_firstItemPtr) {
         return nullptr;
     }
+
+    _length--;
 
     if (!_firstItemPtr->nextItemPtr) {
         auto item = _firstItemPtr;
@@ -146,14 +143,40 @@ template<typename T> T* dataTypes::List<T>::pop() {
     auto lastItem = getLastItem();
 
     getItemAtIndex(-2)->nextItemPtr = nullptr;
+    _length--;
 
     return lastItem->valuePtr;
+}
+
+template<typename T> Count dataTypes::List<T>::unshift(T* valuePtr) {
+    auto itemPtr = new _ListItem<T> {
+        .valuePtr = valuePtr,
+        .nextItemPtr = nullptr
+    };
+
+    _length++;
+
+    if (!_firstItemPtr) {
+        _firstItemPtr = itemPtr;
+
+        return 1;
+    }
+
+    auto oldFirstItemPtr = _firstItemPtr;
+
+    _firstItemPtr = itemPtr;
+
+    itemPtr->nextItemPtr = oldFirstItemPtr;
+
+    return _length;
 }
 
 template<typename T> T* dataTypes::List<T>::shift() {
     if (!_firstItemPtr) {
         return nullptr;
     }
+
+    _length--;
 
     auto item = _firstItemPtr;
 

@@ -41,11 +41,13 @@ namespace dataTypes {
             Count length();
             Count push(T* valuePtr);
             T* pop();
+            Count unshift(T* valuePtr);
             T* shift();
             void forEach(IterationCallback iterationCallback);
 
         private:
             _ListItem<T>* _firstItemPtr;
+            Count _length;
 
             _ListItem<T>* getItemAtIndex(int index);
             _ListItem<T>* getLastItem();
