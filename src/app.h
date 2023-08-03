@@ -13,10 +13,6 @@
 #include <Arduino.h>
 
 namespace app {
-    struct _AppProcessTaskState {
-        String id;
-    };
-
     void launch(String id);
 }
 

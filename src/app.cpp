@@ -12,6 +12,10 @@
 #include "app.h"
 #include "proc.h"
 
+struct ProcessTaskState {
+    String id;
+};
+
 void processTask(proc::Process* processPtr) {
     Serial.println("Hello, world, from an app!");
 
@@ -19,7 +23,7 @@ void processTask(proc::Process* processPtr) {
 }
 
 void app::launch(String id) {
-    auto processTaskState = new _AppProcessTaskState();
+    auto processTaskState = new ProcessTaskState();
 
     processTaskState->id = id;
 
