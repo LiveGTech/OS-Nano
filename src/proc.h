@@ -15,26 +15,33 @@
 namespace proc {
     enum Status {
         STOPPED,
-        RUNNING
+        RUNNING,
+        STOPPING
     };
 
     class Process {
         public:
-            typedef void (*ProcessTask)(Process process);
+            typedef void (*ProcessTask)(Process* processPtr);
 
-            Process(ProcessTask processTask);
+            void* taskState;
+
+            Process(ProcessTask task, void* initialTaskState);
             ~Process();
 
             unsigned int id();
             Status status();
             void start();
             void stop();
+            void stopAndDiscard();
+            void run();
 
+        private:
             unsigned int _id;
             Status _status;
-            ProcessTask _processTask;
+            ProcessTask _task;
     };
 
+    void cycleScheduler();
     Count getRunningProcessesCount();
     Process* getRunningProcessById(unsigned int id);
 }

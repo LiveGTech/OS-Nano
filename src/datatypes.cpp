@@ -36,19 +36,7 @@ template<typename T> dataTypes::List<T>::List() {
 }
 
 template<typename T> dataTypes::List<T>::~List() {
-    if (!_firstItemPtr) {
-        return;
-    }
-
-    dataTypes::_ListItem<T>* currentItemPtr = _firstItemPtr;
-
-    while (currentItemPtr) {
-        auto nextItemPtr = currentItemPtr->nextItemPtr;
-
-        delete currentItemPtr;
-
-        currentItemPtr = nextItemPtr;
-    }
+    empty();
 }
 
 template<typename T> dataTypes::_ListItem<T>* dataTypes::List<T>::getItemAtIndex(int index) {
@@ -120,6 +108,25 @@ template<typename T> T* dataTypes::List<T>::next() {
 
 template<typename T> Count dataTypes::List<T>::length() {
     return _length;
+}
+
+template<typename T> void dataTypes::List<T>::empty() {
+    if (!_firstItemPtr) {
+        return;
+    }
+
+    auto currentItemPtr = _firstItemPtr;
+
+    while (currentItemPtr) {
+        auto nextItemPtr = currentItemPtr->nextItemPtr;
+
+        delete currentItemPtr;
+
+        currentItemPtr = nextItemPtr;
+    }
+
+    _firstItemPtr = nullptr;
+    _length = 0;
 }
 
 template<typename T> Count dataTypes::List<T>::push(T* valuePtr) {

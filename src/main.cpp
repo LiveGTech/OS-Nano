@@ -36,6 +36,11 @@ static lv_point_t lineYPoints[] = {
     {0, GOSN_SCREEN_HEIGHT - 1}
 };
 
+struct HelloTaskState {
+    String value;
+    Count count;
+};
+
 void updateCounterTimer(lv_timer_t* timer) {
     lv_label_set_text_fmt(label, "Count: %d", i);
 
@@ -179,9 +184,30 @@ void setup() {
 
     Serial.println("");
 
-    auto process = new proc::Process([] (proc::Process process) {
+    auto processStatePtr = new HelloTaskState();
+
+    processStatePtr->value = "Testing!";
+    processStatePtr->count = 10;
+
+    auto process = new proc::Process([] (proc::Process* processPtr) {
+        auto state = ((HelloTaskState*)processPtr->taskState);
+
         Serial.println("Hello, world!");
-    });
+        Serial.print("My state value: ");
+        Serial.println(state->value);
+
+        Serial.print("I'll run for ");
+        Serial.print(state->count);
+        Serial.println(" more scheduler cycles");
+
+        if (state->count == 0) {
+            processPtr->stopAndDiscard();
+
+            return;
+        }
+
+        state->count--;
+    }, processStatePtr);
 
     Serial.print("Process ID: ");
     Serial.println(process->id());
@@ -191,19 +217,11 @@ void setup() {
 
     Serial.print("Running process count: ");
     Serial.println(proc::getRunningProcessesCount());
-
-    proc::getRunningProcessById(process->id())->stop();
-
-    Serial.print("Process status after stopping: ");
-    Serial.println(process->status());
-
-    Serial.print("Running process count: ");
-    Serial.println(proc::getRunningProcessesCount());
-
-    delete process;
 }
 
 void loop() {
+    proc::cycleScheduler();
+
     display::update(1);
 
     #ifndef GOSN_SIMULATOR

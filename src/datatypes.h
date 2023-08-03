@@ -43,6 +43,7 @@ namespace dataTypes {
             void start();
             T* next();
             Count length();
+            void empty();
             Count push(T* valuePtr);
             T* pop();
             Count unshift(T* valuePtr);

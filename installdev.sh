@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # LiveG OS Nano
 # 
 # Copyright (C) LiveG. All Rights Reserved.

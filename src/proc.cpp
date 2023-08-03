@@ -12,11 +12,14 @@
 
 unsigned int nextId = 0;
 auto runningProcesses = dataTypes::List<proc::Process>();
+bool schedulerIsRunning = false;
+auto processesToStop = dataTypes::List<proc::Process>();
 
-proc::Process::Process(ProcessTask processTask) {
+proc::Process::Process(ProcessTask task, void* initialTaskState) {
     _id = nextId++;
     _status = proc::Status::STOPPED;
-    _processTask = processTask;
+    _task = task;
+    taskState = initialTaskState;
 
     start();
 }
@@ -37,6 +40,12 @@ void proc::Process::start() {
     _status = Status::RUNNING;
 
     runningProcesses.push(this);
+
+    int processToStopIndex = processesToStop.indexOf(this);
+
+    if (processToStopIndex >= 0) {
+        processesToStop.remove(processToStopIndex);
+    }
 }
 
 void proc::Process::stop() {
@@ -44,13 +53,55 @@ void proc::Process::stop() {
         return;
     }
 
-    _status = proc::Status::STOPPED;
+    if (schedulerIsRunning) {
+        // Don't remove from running processes as list is still being processed by scheduler
 
-    runningProcesses.remove(runningProcesses.indexOf(this));
+        if (_status == Status::STOPPING) {
+            return;
+        }
+
+        processesToStop.push(this);
+
+        _status = proc::Status::STOPPING;
+    } else {
+        runningProcesses.remove(runningProcesses.indexOf(this));
+
+        _status = proc::Status::STOPPED;
+    }
+}
+
+void proc::Process::stopAndDiscard() {
+    stop();
+
+    delete this;
+}
+
+void proc::Process::run() {
+    _task(this);
 }
 
 proc::Process::~Process() {
     stop();
+}
+
+void proc::cycleScheduler() {
+    if (runningProcesses.length() == 0) {
+        return;
+    }
+
+    schedulerIsRunning = true;
+
+    runningProcesses.start();
+
+    while (auto process = runningProcesses.next()) {
+        process->run();
+    }
+
+    schedulerIsRunning = false;
+
+    while (auto process = processesToStop.shift()) {
+        process->stop();
+    }
 }
 
 Count proc::getRunningProcessesCount() {
