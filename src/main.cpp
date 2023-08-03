@@ -184,12 +184,12 @@ void setup() {
 
     Serial.println("");
 
-    auto processStatePtr = new HelloTaskState();
+    auto processStatePtr1 = new HelloTaskState();
 
-    processStatePtr->value = "Testing!";
-    processStatePtr->count = 10;
+    processStatePtr1->value = "Testing!";
+    processStatePtr1->count = 10;
 
-    auto process = new proc::Process([] (proc::Process* processPtr) {
+    auto process1 = new proc::Process([] (proc::Process* processPtr) {
         auto state = ((HelloTaskState*)processPtr->taskState);
 
         Serial.println("Hello, world!");
@@ -207,13 +207,38 @@ void setup() {
         }
 
         state->count--;
-    }, processStatePtr);
+    }, processStatePtr1);
 
-    Serial.print("Process ID: ");
-    Serial.println(process->id());
+    Serial.print("Process 1 ID: ");
+    Serial.println(process1->id());
 
-    Serial.print("Process status: ");
-    Serial.println(process->status());
+    Serial.print("Process 1 status: ");
+    Serial.println(process1->status());
+
+    auto processStatePtr2 = new HelloTaskState();
+
+    processStatePtr2->value = "Another process!";
+    processStatePtr2->count = 0;
+
+    auto process2 = new proc::Process([] (proc::Process* processPtr) {
+        auto state = ((HelloTaskState*)processPtr->taskState);
+
+        Serial.println("Hey, world!");
+        Serial.print("My state value: ");
+        Serial.println(state->value);
+
+        Serial.print("I've been running for ");
+        Serial.print(state->count);
+        Serial.println(" scheduler cycles");
+
+        if (state->count == 15) {
+            processPtr->stopAndDiscard();
+
+            return;
+        }
+
+        state->count++;
+    }, processStatePtr2);
 
     Serial.print("Running process count: ");
     Serial.println(proc::getRunningProcessesCount());
