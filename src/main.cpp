@@ -17,6 +17,7 @@
 #include "config.h"
 #include "datatypes.h"
 #include "display.h"
+#include "proc.h"
 
 static int i = 0;
 
@@ -177,6 +178,23 @@ void setup() {
     });
 
     Serial.println("");
+
+    auto process = new proc::Process([] (proc::Process process) {
+        Serial.println("Hello, world!");
+    });
+
+    Serial.print("Process ID: ");
+    Serial.println(process->id());
+
+    Serial.print("Process status: ");
+    Serial.println(process->status());
+
+    process->stop();
+
+    Serial.print("Process status after stopping: ");
+    Serial.println(process->status());
+
+    delete process;
 }
 
 void loop() {

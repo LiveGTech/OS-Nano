@@ -14,23 +14,25 @@
 
 namespace proc {
     enum Status {
-        RUNNING,
-        STOPPED
+        STOPPED,
+        RUNNING
     };
 
     class Process {
         public:
-            Process(void *taskPtr);
+            typedef void (*ProcessTask)(Process process);
+
+            Process(ProcessTask processTask);
             ~Process();
 
+            unsigned int id();
+            Status status();
+            void start();
             void stop();
 
-        protected:
-            unsigned int id;
-            Status status;
-
-        private:
-            void* _taskPtr;
+            unsigned int _id;
+            Status _status;
+            ProcessTask _processTask;
     };
 }
 
