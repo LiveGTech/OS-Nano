@@ -22,7 +22,7 @@ namespace proc {
     class Process {
         public:
             typedef void (*ProcessTask)(Process* processPtr);
-            typedef void (*ProcessCleanupTask)(Process* processPtr);
+            typedef void (*ProcessCleanupHandler)(Process* processPtr);
 
             void* taskState;
 
@@ -31,6 +31,7 @@ namespace proc {
 
             unsigned int id();
             Status status();
+            void setCleanupHandler(ProcessCleanupHandler cleanupHandler);
             void start();
             void stop();
             void stopAndDiscard();
@@ -40,6 +41,8 @@ namespace proc {
             unsigned int _id;
             Status _status;
             ProcessTask _task;
+            ProcessCleanupHandler _cleanupHandler;
+            bool _shouldDiscard;
     };
 
     void cycleScheduler();

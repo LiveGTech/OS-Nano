@@ -15,11 +15,16 @@ auto runningProcesses = dataTypes::List<proc::Process>();
 bool schedulerIsRunning = false;
 auto processesToStop = dataTypes::List<proc::Process>();
 
+void defaultCleanupHandler(proc::Process* processPtr) {}
+
 proc::Process::Process(ProcessTask task, void* initialTaskState) {
     _id = nextId++;
     _status = proc::Status::STOPPED;
     _task = task;
+    _shouldDiscard = false;
     taskState = initialTaskState;
+
+    setCleanupHandler(defaultCleanupHandler);
 
     start();
 }
@@ -30,6 +35,10 @@ unsigned int proc::Process::id() {
 
 proc::Status proc::Process::status() {
     return _status;
+}
+
+void proc::Process::setCleanupHandler(ProcessCleanupHandler cleanupHandler) {
+    _cleanupHandler = cleanupHandler;
 }
 
 void proc::Process::start() {
@@ -68,16 +77,22 @@ void proc::Process::stop() {
 
         _status = proc::Status::STOPPED;
 
-        if (taskState) {
-            delete taskState;
+        _cleanupHandler(this);
+
+        if (_shouldDiscard) {
+            if (taskState) {
+                delete taskState;
+            }
+
+            delete this;
         }
     }
 }
 
 void proc::Process::stopAndDiscard() {
-    stop();
+    _shouldDiscard = true;
 
-    delete this;
+    stop();
 }
 
 void proc::Process::run() {

@@ -153,12 +153,11 @@ template<typename T> T* dataTypes::List<T>::pop() {
         return nullptr;
     }
 
-    _length--;
-
     if (!_firstItemPtr->nextItemPtr) {
         auto item = _firstItemPtr;
 
         _firstItemPtr = nullptr;
+        _length--;
 
         return item->valuePtr;
     }

@@ -22,10 +22,16 @@ void processTask(proc::Process* processPtr) {
     processPtr->stopAndDiscard();
 }
 
+void processCleanupHandler(proc::Process* processPtr) {
+    Serial.println("App cleanup");
+}
+
 void app::launch(String id) {
     auto processTaskState = new ProcessTaskState();
 
     processTaskState->id = id;
 
     auto process = new proc::Process(processTask, processTaskState);
+
+    process->setCleanupHandler(processCleanupHandler);
 }
