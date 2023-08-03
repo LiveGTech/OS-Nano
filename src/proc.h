@@ -22,6 +22,7 @@ namespace proc {
     class Process {
         public:
             typedef void (*ProcessTask)(Process* processPtr);
+            typedef void (*ProcessCleanupTask)(Process* processPtr);
 
             void* taskState;
 

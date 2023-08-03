@@ -38,6 +38,7 @@ add_definitions(
 target_compile_options(os-nano PRIVATE
     -pthread
     -Wno-unused-command-line-argument
+    -Wno-delete-incomplete
     -Wl,-pthread
 )
 

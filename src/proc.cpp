@@ -67,6 +67,10 @@ void proc::Process::stop() {
         runningProcesses.remove(runningProcesses.indexOf(this));
 
         _status = proc::Status::STOPPED;
+
+        if (taskState) {
+            delete taskState;
+        }
     }
 }
 

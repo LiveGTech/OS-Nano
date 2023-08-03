@@ -18,6 +18,7 @@
 #include "datatypes.h"
 #include "display.h"
 #include "proc.h"
+#include "app.h"
 
 static int i = 0;
 
@@ -242,6 +243,8 @@ void setup() {
 
     Serial.print("Running process count: ");
     Serial.println(proc::getRunningProcessesCount());
+
+    app::launch("hello");
 }
 
 void loop() {
