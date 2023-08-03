@@ -34,6 +34,9 @@ namespace proc {
             Status _status;
             ProcessTask _processTask;
     };
+
+    Count getRunningProcessesCount();
+    Process* getRunningProcessById(unsigned int id);
 }
 
 #endif

@@ -11,7 +11,7 @@
 #include "datatypes.h"
 
 unsigned int nextId = 0;
-auto processes = dataTypes::List<proc::Process>();
+auto runningProcesses = dataTypes::List<proc::Process>();
 
 proc::Process::Process(ProcessTask processTask) {
     _id = nextId++;
@@ -36,7 +36,7 @@ void proc::Process::start() {
 
     _status = Status::RUNNING;
 
-    processes.push(this);
+    runningProcesses.push(this);
 }
 
 void proc::Process::stop() {
@@ -46,9 +46,25 @@ void proc::Process::stop() {
 
     _status = proc::Status::STOPPED;
 
-    processes.remove(processes.indexOf(this));
+    runningProcesses.remove(runningProcesses.indexOf(this));
 }
 
 proc::Process::~Process() {
     stop();
+}
+
+Count proc::getRunningProcessesCount() {
+    return runningProcesses.length();
+}
+
+proc::Process* proc::getRunningProcessById(unsigned int id) {
+    runningProcesses.start();
+
+    while (auto process = runningProcesses.next()) {
+        if (process->id() == id) {
+            return process;
+        }
+    }
+
+    return nullptr;
 }

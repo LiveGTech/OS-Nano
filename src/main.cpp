@@ -189,10 +189,16 @@ void setup() {
     Serial.print("Process status: ");
     Serial.println(process->status());
 
-    process->stop();
+    Serial.print("Running process count: ");
+    Serial.println(proc::getRunningProcessesCount());
+
+    proc::getRunningProcessById(process->id())->stop();
 
     Serial.print("Process status after stopping: ");
     Serial.println(process->status());
+
+    Serial.print("Running process count: ");
+    Serial.println(proc::getRunningProcessesCount());
 
     delete process;
 }
