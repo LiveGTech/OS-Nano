@@ -7,6 +7,10 @@
     Licensed by the LiveG Open-Source Licence, which can be found at LICENCE.md.
 */
 
+#ifdef GOSN_SIMULATOR
+    #include <emscripten.h>
+#endif
+
 #include "config.h"
 #include "display.h"
 
@@ -25,15 +29,32 @@ bool display::touchIsDown = false;
 unsigned int display::touchX = 0;
 unsigned int display::touchY = 0;
 
+#ifdef GOSN_SIMULATOR
+    EM_JS(void, sendDisplayDataToSimulator, (uint16_t* data, uint32_t x, uint32_t y, uint32_t width, uint32_t height), {
+        var length = width * height;
+        var buffer = new Uint16Array(length);
+
+        for (var i = 0; i < length; i++) {
+            buffer[i] = HEAPU16[(data >> 1) + i];
+        }
+
+        // TODO: Use this data to render to canvas
+    });
+#endif
+
 void flush(lv_disp_drv_t* displayDriver, const lv_area_t* renderArea, lv_color_t* colours) {
     uint32_t width = renderArea->x2 - renderArea->x1 + 1;
     uint32_t height = renderArea->y2 - renderArea->y1 + 1;
+
+    uint16_t data[4] = {3, 2, 1, 0};
 
     #ifndef GOSN_SIMULATOR
         tft.startWrite();
         tft.setAddrWindow(renderArea->x1, renderArea->y1, width, height);
         tft.pushColors((uint16_t*)&colours->full, width * height, true);
         tft.endWrite();
+    #else
+        sendDisplayDataToSimulator((uint16_t*)&colours->full, renderArea->x1, renderArea->y1, width, height);
     #endif
 
     lv_disp_flush_ready(displayDriver);
