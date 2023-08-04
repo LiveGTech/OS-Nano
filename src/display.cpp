@@ -30,15 +30,14 @@ unsigned int display::touchX = 0;
 unsigned int display::touchY = 0;
 
 #ifdef GOSN_SIMULATOR
-    EM_JS(void, sendDisplayDataToSimulator, (uint16_t* data, uint32_t x, uint32_t y, uint32_t width, uint32_t height), {
-        var length = width * height;
-        var buffer = new Uint16Array(length);
+    EM_JS(void, sendDisplayDataToSimulator, (uint8_t* data, uint32_t x1, uint32_t y1, uint32_t width, uint32_t height), {
+        var length = width * height * 4;
+        var buffer = new Uint8ClampedArray(HEAPU8.buffer.slice(data), 0, length);
 
-        for (var i = 0; i < length; i++) {
-            buffer[i] = HEAPU16[(data >> 1) + i];
-        }
+        var context = document.querySelector("#osNanoDisplay").getContext("2d");
+        var imageData = new ImageData(buffer, width, height);
 
-        // TODO: Use this data to render to canvas
+        context.putImageData(imageData, x1, y1);
     });
 #endif
 
@@ -46,15 +45,32 @@ void flush(lv_disp_drv_t* displayDriver, const lv_area_t* renderArea, lv_color_t
     uint32_t width = renderArea->x2 - renderArea->x1 + 1;
     uint32_t height = renderArea->y2 - renderArea->y1 + 1;
 
-    uint16_t data[4] = {3, 2, 1, 0};
-
     #ifndef GOSN_SIMULATOR
         tft.startWrite();
         tft.setAddrWindow(renderArea->x1, renderArea->y1, width, height);
         tft.pushColors((uint16_t*)&colours->full, width * height, true);
         tft.endWrite();
     #else
-        sendDisplayDataToSimulator((uint16_t*)&colours->full, renderArea->x1, renderArea->y1, width, height);
+        uint8_t rgba8888ChannelData[width * height * 4];
+
+        for (uint32_t y = 0; y < height; y++) {
+            for (uint32_t x = 0; x < width; x++) {
+                uint32_t i = (y * width) + x;
+                uint32_t j = i * 4;
+                uint16_t rgb565 = ((uint16_t*)&colours->full)[i];
+
+                uint8_t r565 = (rgb565 & 0b1111100000000000) >> 11;
+                uint8_t g565 = (rgb565 & 0b0000011111100000) >> 5;
+                uint8_t b565 = (rgb565 & 0b0000000000011111) >> 0;
+
+                rgba8888ChannelData[j + 0] = ((r565 * 527) + 23) >> 6;
+                rgba8888ChannelData[j + 1] = ((g565 * 259) + 33) >> 6;
+                rgba8888ChannelData[j + 2] = ((b565 * 527) + 23) >> 6;
+                rgba8888ChannelData[j + 3] = 255;
+            }
+        }
+
+        sendDisplayDataToSimulator(rgba8888ChannelData, renderArea->x1, renderArea->y1, width, height);
     #endif
 
     lv_disp_flush_ready(displayDriver);

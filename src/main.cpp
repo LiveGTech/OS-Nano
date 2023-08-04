@@ -22,6 +22,8 @@
 
 static int i = 0;
 
+double lastTimestamp = 0;
+
 static lv_obj_t* label;
 
 static lv_obj_t* lineX;
@@ -250,11 +252,21 @@ void setup() {
 void loop() {
     proc::cycleScheduler();
 
-    display::update(1);
+    #ifndef GOSN_SIMULATOR
+        double currentTimestamp = millis();
+    #else
+        double currentTimestamp = emscripten_performance_now();
+    #endif
+
+    double timeDelta = currentTimestamp - lastTimestamp;
+
+    display::update(timeDelta);
 
     #ifndef GOSN_SIMULATOR
         delay(1);
     #endif
+
+    lastTimestamp = currentTimestamp;
 }
 
 #ifdef GOSN_SIMULATOR
