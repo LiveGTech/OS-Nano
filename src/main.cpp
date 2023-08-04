@@ -255,7 +255,7 @@ void loop() {
     #ifndef GOSN_SIMULATOR
         double currentTimestamp = millis();
     #else
-        double currentTimestamp = emscripten_performance_now();
+        double currentTimestamp = emscripten_get_now();
     #endif
 
     double timeDelta = currentTimestamp - lastTimestamp;
