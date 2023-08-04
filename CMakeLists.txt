@@ -36,11 +36,11 @@ add_definitions(
 )
 
 target_compile_options(os-nano PRIVATE
-    -pthread
     -Wno-unused-command-line-argument
     -Wno-delete-incomplete
-    -Wl,-pthread
 )
+
+set_target_properties(os-nano PROPERTIES LINK_FLAGS --bind)
 
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/installdev/EpoxyDuino/cores/epoxy)

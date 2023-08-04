@@ -26,6 +26,8 @@ namespace display {
 
     void init();
     void update(unsigned int millisecondsPassed);
+
+    void setTouchData(bool isDown, unsigned int x, unsigned int y);
 }
 
 #endif

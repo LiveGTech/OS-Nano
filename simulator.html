@@ -4,6 +4,42 @@
     <head>
         <title>LiveG OS Nano Simulator</title>
 		<script src="build/os-nano.js"></script>
+        <script>
+            var lastTouchIsDown = false;
+            var lastTouchX = 0;
+            var lastTouchY = 0;
+
+            window.addEventListener("load", function() {
+                document.querySelector("#osNanoDisplay").addEventListener("pointerup", function(event) {
+                    lastTouchIsDown = false;
+
+                    Module.display_setTouchData(false, lastTouchX, lastTouchY);
+                });
+
+                document.querySelector("#osNanoDisplay").addEventListener("pointerdown", function(event) {
+                    var rect = event.target.getBoundingClientRect();
+
+                    lastTouchIsDown = true;
+                    lastTouchX = event.pageX - rect.left;
+                    lastTouchY = event.pageY - rect.top;
+
+                    Module.display_setTouchData(true, lastTouchX, lastTouchY);
+                });
+
+                document.querySelector("#osNanoDisplay").addEventListener("pointermove", function(event) {
+                    if (!lastTouchIsDown) {
+                        return;
+                    }
+
+                    var rect = event.target.getBoundingClientRect();
+
+                    lastTouchX = event.pageX - rect.left;
+                    lastTouchY = event.pageY - rect.top;
+
+                    Module.display_setTouchData(true, lastTouchX, lastTouchY);
+                });
+            });
+        </script>
     </head>
     <body>
         <canvas width="240" height="240" id="osNanoDisplay"></canvas>

@@ -9,12 +9,11 @@
 
 #ifdef GOSN_SIMULATOR
     #include <emscripten.h>
+    #include <emscripten/bind.h>
 #endif
 
 #include "config.h"
 #include "display.h"
-
-using namespace display;
 
 static lv_disp_draw_buf_t drawBuffer;
 static lv_color_t buffer[GOSN_SCREEN_WIDTH * 10];
@@ -30,9 +29,9 @@ unsigned int display::touchX = 0;
 unsigned int display::touchY = 0;
 
 #ifdef GOSN_SIMULATOR
-    EM_JS(void, sendDisplayDataToSimulator, (uint8_t* data, uint32_t x1, uint32_t y1, uint32_t width, uint32_t height), {
+    EM_JS(void, sendDisplayDataToSimulator, (uint8_t* dataPtr, uint32_t x1, uint32_t y1, uint32_t width, uint32_t height), {
         var length = width * height * 4;
-        var buffer = new Uint8ClampedArray(HEAPU8.buffer.slice(data), 0, length);
+        var buffer = new Uint8ClampedArray(HEAPU8.buffer.slice(dataPtr), 0, length);
 
         var context = document.querySelector("#osNanoDisplay").getContext("2d");
         var imageData = new ImageData(buffer, width, height);
@@ -123,12 +122,24 @@ void display::init() {
 void display::update(unsigned int millisecondsPassed) {
     #ifndef GOSN_SIMULATOR
         if (touch.available()) {
-            display::touchIsDown = touch.data.event != 1;
-            display::touchX = touch.data.x;
-            display::touchY = touch.data.y;
+            touchIsDown = touch.data.event != 1;
+            touchX = touch.data.x;
+            touchY = touch.data.y;
         }
     #endif
 
     lv_timer_handler();
     lv_tick_inc(millisecondsPassed);
 }
+
+void display::setTouchData(bool isDown, unsigned int x, unsigned int y) {
+    touchIsDown = isDown;
+    touchX = x;
+    touchY = y;
+}
+
+#ifdef GOSN_SIMULATOR
+    EMSCRIPTEN_BINDINGS(my_module) {
+        emscripten::function("display_setTouchData", &display::setTouchData);
+    }
+#endif
