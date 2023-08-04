@@ -29,6 +29,9 @@ static lv_obj_t* label;
 static lv_obj_t* lineX;
 static lv_obj_t* lineY;
 
+unsigned int lastTouchX = 0;
+unsigned int lastTouchY = 0;
+
 static lv_point_t lineXPoints[] = {
     {0, 0},
     {GOSN_SCREEN_WIDTH - 1, GOSN_SCREEN_HEIGHT - 1}
@@ -47,18 +50,23 @@ struct HelloTaskState {
 void updateCounterTimer(lv_timer_t* timer) {
     lv_label_set_text_fmt(label, "Count: %d", i);
 
-    lineXPoints[0].x = display::touchX;
-    lineXPoints[0].y = 0;
-    lineXPoints[1].x = display::touchX;
-    lineXPoints[1].y = GOSN_SCREEN_HEIGHT - 1;
+    if (display::touchX != lastTouchX || display::touchY != lastTouchY) {
+        lastTouchX = display::touchX;
+        lastTouchY = display::touchY;
 
-    lineYPoints[0].x = 0;
-    lineYPoints[0].y = display::touchY;
-    lineYPoints[1].x = GOSN_SCREEN_WIDTH - 1;
-    lineYPoints[1].y = display::touchY;
-    
-    lv_line_set_points(lineX, lineXPoints, 2);
-    lv_line_set_points(lineY, lineYPoints, 2);
+        lineXPoints[0].x = display::touchX;
+        lineXPoints[0].y = 0;
+        lineXPoints[1].x = display::touchX;
+        lineXPoints[1].y = GOSN_SCREEN_HEIGHT - 1;
+
+        lineYPoints[0].x = 0;
+        lineYPoints[0].y = display::touchY;
+        lineYPoints[1].x = GOSN_SCREEN_WIDTH - 1;
+        lineYPoints[1].y = display::touchY;
+        
+        lv_line_set_points(lineX, lineXPoints, 2);
+        lv_line_set_points(lineY, lineYPoints, 2);
+    }
 
     i++;
 }
@@ -260,13 +268,13 @@ void loop() {
 
     double timeDelta = currentTimestamp - lastTimestamp;
 
+    lastTimestamp = currentTimestamp;
+
     display::update(timeDelta);
 
     #ifndef GOSN_SIMULATOR
         delay(1);
     #endif
-
-    lastTimestamp = currentTimestamp;
 }
 
 #ifdef GOSN_SIMULATOR
