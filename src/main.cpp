@@ -10,7 +10,9 @@
 #include <Arduino.h>
 #include <lvgl.h>
 
-#ifdef GOSN_SIMULATOR
+#ifndef GOSN_SIMULATOR
+    #include <SPIFFS.h>
+#else
     #include <emscripten.h>
 #endif
 
@@ -75,6 +77,10 @@ void setup() {
     Serial.begin(115200);
 
     Serial.println("Hello, world!");
+
+    #ifndef GOSN_SIMULATOR
+        SPIFFS.begin(true);
+    #endif
 
     display::init();
 
