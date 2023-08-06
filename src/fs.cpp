@@ -94,7 +94,7 @@ bool fs::FileHandle::isAvailable() {
 
 char fs::FileHandle::read() {
     if (!isAvailable()) {
-        return NULL;
+        return '\0';
     }
 
     #ifndef GOSN_SIMULATOR
