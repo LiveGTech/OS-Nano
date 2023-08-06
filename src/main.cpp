@@ -11,7 +11,7 @@
 #include <lvgl.h>
 
 #ifndef GOSN_SIMULATOR
-    #include <SPIFFS.h>
+    #include <LittleFS.h>
 #else
     #include <emscripten.h>
 #endif
@@ -79,7 +79,7 @@ void setup() {
     Serial.println("Hello, world!");
 
     #ifndef GOSN_SIMULATOR
-        SPIFFS.begin(true);
+        LittleFS.begin();
     #endif
 
     display::init();
