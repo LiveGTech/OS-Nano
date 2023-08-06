@@ -106,6 +106,10 @@ void fs::FileHandle::write(char c) {
         return;
     }
 
+    if (!(_mode == FileMode::WRITE || _mode == FileMode::APPEND)) {
+        return;
+    }
+
     #ifndef GOSN_SIMULATOR
         _file.write(c);
     #else
