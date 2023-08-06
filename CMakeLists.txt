@@ -40,7 +40,7 @@ target_compile_options(os-nano PRIVATE
     -Wno-delete-incomplete
 )
 
-set_target_properties(os-nano PROPERTIES LINK_FLAGS --bind)
+set_target_properties(os-nano PROPERTIES LINK_FLAGS "--bind --embed-file rootfs@/")
 
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_include_directories(os-nano PRIVATE ${CMAKE_SOURCE_DIR}/installdev/EpoxyDuino/cores/epoxy)

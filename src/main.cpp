@@ -21,6 +21,7 @@
 #include "display.h"
 #include "proc.h"
 #include "app.h"
+#include "fs.h"
 
 static int i = 0;
 
@@ -261,6 +262,32 @@ void setup() {
     Serial.println(proc::getRunningProcessesCount());
 
     app::launch("hello");
+
+    Serial.println("About to open demo file");
+
+    auto helloFile = fs::open("/hello.txt", fs::FileMode::READ);
+
+    Serial.println("Opened demo file");
+
+    if (!helloFile) {
+        Serial.println("Couldn't open demo file");
+
+        return;
+    }
+
+    while (helloFile->isAvailable()) {
+        char c = helloFile->read();
+
+        if (c == '\0') {
+            break;
+        }
+
+        Serial.print(c);
+    }
+
+    Serial.println("");
+
+    delete helloFile;
 }
 
 void loop() {

@@ -43,6 +43,7 @@ namespace fs {
             String _path;
             FileMode _mode;
             bool _isOpen;
+            bool _errorOnOpen;
 
             #ifndef GOSN_SIMULATOR
                 File _file;

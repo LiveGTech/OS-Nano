@@ -41,6 +41,7 @@ fs::FileHandle::FileHandle(String path, fs::FileMode mode) {
     _path = path;
     _mode = mode;
     _isOpen = true;
+    _errorOnOpen = false;
 
     path.toCharArray(pathCharArray, sizeof(pathCharArray));
 
@@ -59,6 +60,8 @@ fs::FileHandle::FileHandle(String path, fs::FileMode mode) {
     #endif
 
     if (!_file) {
+        _errorOnOpen = true;
+
         close();
 
         return;
@@ -97,7 +100,13 @@ char fs::FileHandle::read() {
     #ifndef GOSN_SIMULATOR
         return _file.read();
     #else
-        return fgetc(_file);
+        int c = fgetc(_file);
+
+        if (c < 0) {
+            return '\0';
+        }
+
+        return (char)c;
     #endif
 }
 
@@ -137,6 +146,10 @@ void fs::FileHandle::close() {
     _isOpen = false;
 
     openFileHandles.remove(openFileHandles.indexOf(this));
+
+    if (_errorOnOpen) {
+        return;
+    }
 
     #ifndef GOSN_SIMULATOR
         _file.close();
