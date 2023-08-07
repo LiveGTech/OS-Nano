@@ -35,6 +35,7 @@ namespace fs {
             bool isOpen();
             bool isAvailable();
             char read();
+            String readString();
             void write(char c);
             void start();
             void close();

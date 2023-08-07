@@ -110,6 +110,22 @@ char fs::FileHandle::read() {
     #endif
 }
 
+String fs::FileHandle::readString() {
+    String data;
+
+    while (isAvailable()) {
+        char c = read();
+
+        if (c == '\0') {
+            break;
+        }
+
+        data += c;
+    }
+
+    return data;
+}
+
 void fs::FileHandle::write(char c) {
     if (!isAvailable()) {
         return;

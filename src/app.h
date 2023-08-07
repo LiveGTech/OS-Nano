@@ -12,8 +12,10 @@
 
 #include <Arduino.h>
 
+#include "proc.h"
+
 namespace app {
-    void launch(String id);
+    proc::Process* launch(String id);
 }
 
 #endif

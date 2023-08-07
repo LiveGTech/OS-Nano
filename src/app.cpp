@@ -10,11 +10,14 @@
 #include <Arduino.h>
 #include <duktape.h>
 
+#include "datatypes.h"
 #include "app.h"
 #include "proc.h"
+#include "fs.h"
 
 struct ProcessTaskState {
     String id;
+    char* scriptCodeCharArray;
     duk_context* duktapeContextPtr;
 };
 
@@ -30,7 +33,7 @@ void processTask(proc::Process* processPtr) {
     auto state = (ProcessTaskState*)processPtr->taskState;
     auto ctx = state->duktapeContextPtr;
 
-    duk_eval_string_noresult(ctx, "print('Hello from an app!');");
+    duk_eval_string_noresult(ctx, state->scriptCodeCharArray);
 
     processPtr->stopAndDiscard();
 }
@@ -57,12 +60,25 @@ duk_ret_t native_print(duk_context* ctx) {
     return 0;
 }
 
-void app::launch(String id) {
+proc::Process* app::launch(String id) {
     auto processTaskState = new ProcessTaskState();
-
     auto process = new proc::Process(processTask, processTaskState);
 
     auto ctx = duk_create_heap(NULL, NULL, NULL, process, NULL);
+
+    auto file = fs::open("/apps/" + id + "/app.js", fs::FileMode::READ);
+
+    if (!file) {
+        return nullptr;
+    }
+
+    auto scriptCode = file->readString();
+
+    const Count CODE_CHAR_ARRAY_LENGTH = scriptCode.length() + 1;
+
+    processTaskState->scriptCodeCharArray = (char*)malloc(CODE_CHAR_ARRAY_LENGTH);
+
+    scriptCode.toCharArray(processTaskState->scriptCodeCharArray, CODE_CHAR_ARRAY_LENGTH);
 
     processTaskState->id = id;
     processTaskState->duktapeContextPtr = ctx;
@@ -71,4 +87,6 @@ void app::launch(String id) {
     duk_put_global_string(ctx, "print");
 
     process->setCleanupHandler(processCleanupHandler);
+
+    return process;
 }
