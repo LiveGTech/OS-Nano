@@ -13,7 +13,7 @@
 #include <Arduino.h>
 
 #ifndef GOSN_SIMULATOR
-    #include <LittleFS.h>
+    #include <SPIFFS.h>
 #else
     #include <stdio.h>
 #endif

@@ -10,7 +10,7 @@
 #include <Arduino.h>
 
 #ifndef GOSN_SIMULATOR
-    #include <LittleFS.h>
+    #include <SPIFFS.h>
 #else
     #include <stdio.h>
 #endif
@@ -54,7 +54,7 @@ fs::FileHandle::FileHandle(String path, fs::FileMode mode) {
     }
 
     #ifndef GOSN_SIMULATOR
-        _file = LittleFS.open(pathCharArray, getStdFileMode(_mode));
+        _file = SPIFFS.open(pathCharArray, getStdFileMode(_mode));
     #else
         _file = fopen(pathCharArray, getStdFileMode(_mode));
     #endif

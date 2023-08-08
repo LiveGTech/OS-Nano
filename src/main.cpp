@@ -11,7 +11,7 @@
 #include <lvgl.h>
 
 #ifndef GOSN_SIMULATOR
-    #include <LittleFS.h>
+    #include <SPIFFS.h>
 #else
     #include <emscripten.h>
 #endif
@@ -79,8 +79,10 @@ void setup() {
 
     Serial.println("Hello, world!");
 
+    delay(3000);
+
     #ifndef GOSN_SIMULATOR
-        LittleFS.begin();
+        SPIFFS.begin();
     #endif
 
     display::init();
@@ -119,7 +121,7 @@ void setup() {
     int thing = 2;
 
     numbers.push(store(1));
-    numbers.push(&thing);
+    numbers.push(store(thing));
     numbers.push(store(3));
 
     numbers.forEach([] (int* valuePtr, Count index) {
@@ -272,7 +274,7 @@ void setup() {
     if (!helloFile) {
         Serial.println("Couldn't open demo file");
 
-        return;
+        while (true) {}
     }
 
     while (helloFile->isAvailable()) {
@@ -286,6 +288,10 @@ void setup() {
     }
 
     Serial.println("");
+
+    Serial.flush();
+
+    delay(3000);
 
     delete helloFile;
 }
