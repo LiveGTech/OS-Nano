@@ -19,10 +19,8 @@ template<typename T> T* store(T value) {
 
 template<typename T> T discard(T* itemPtr) {
     auto itemValue = *itemPtr;
-
-    #ifdef GOSN_SIMULATOR
-    delete itemPtr;
-    #endif
+    
+    free(itemPtr);
 
     return itemValue;
 }

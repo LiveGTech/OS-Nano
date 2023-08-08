@@ -79,13 +79,11 @@ void setup() {
 
     Serial.println("Hello, world!");
 
-    delay(3000);
+    display::init();
 
     #ifndef GOSN_SIMULATOR
         SPIFFS.begin();
     #endif
-
-    display::init();
 
     label = lv_label_create(lv_scr_act());
 
@@ -115,94 +113,6 @@ void setup() {
     lv_timer_create(updateCounterTimer, 5, NULL);
 
     Serial.println("Setup done");
-
-    dataTypes::List<int> numbers;
-
-    int thing = 2;
-
-    numbers.push(store(1));
-    numbers.push(store(thing));
-    numbers.push(store(3));
-
-    numbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
-
-    Serial.print("Last item popped: ");
-    Serial.println(discard(numbers.pop()));
-
-    discard(numbers.pop());
-
-    numbers.push(store(3));
-    numbers.push(store(5));
-
-    numbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
-
-    Serial.print("First item shifted: ");
-    Serial.println(discard(numbers.shift()));
-
-    numbers.unshift(store(1));
-
-    numbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
-    Serial.print("Length: ");
-    Serial.println(numbers.length());
-
-    numbers.insert(1, store(3));
-    numbers.insert(3, store(7));
-
-    numbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
-
-    Serial.print("Removed at index 2: ");
-    Serial.println(discard(numbers.remove(2)));
-
-    numbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
-
-    dataTypes::List<int> multipliedNumbers = numbers.map([] (int* valuePtr, Count index) {
-        return store(*valuePtr * 2);
-    });
-
-    multipliedNumbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
-
-    dataTypes::List<int> combinedNumbers = numbers.concat(multipliedNumbers);
-
-    dataTypes::List<int> filteredNumbers = combinedNumbers.filter([] (int* valuePtr, Count index) {
-        return *valuePtr < 7;
-    });
-
-    filteredNumbers.forEach([] (int* valuePtr, Count index) {
-        Serial.print(*valuePtr);
-        Serial.print(" ");
-    });
-
-    Serial.println("");
 
     auto processStatePtr1 = new HelloTaskState();
 
@@ -264,36 +174,6 @@ void setup() {
     Serial.println(proc::getRunningProcessesCount());
 
     app::launch("hello");
-
-    Serial.println("About to open demo file");
-
-    auto helloFile = fs::open("/hello.txt", fs::FileMode::READ);
-
-    Serial.println("Opened demo file");
-
-    if (!helloFile) {
-        Serial.println("Couldn't open demo file");
-
-        while (true) {}
-    }
-
-    while (helloFile->isAvailable()) {
-        char c = helloFile->read();
-
-        if (c == '\0') {
-            break;
-        }
-
-        Serial.print(c);
-    }
-
-    Serial.println("");
-
-    Serial.flush();
-
-    delay(3000);
-
-    delete helloFile;
 }
 
 void loop() {

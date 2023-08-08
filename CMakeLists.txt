@@ -5,8 +5,8 @@
 # https://liveg.tech/os
 # Licensed by the LiveG Open-Source Licence, which can be found at LICENCE.md.
 
-project(OS-Nano LANGUAGES C CXX)
 cmake_minimum_required(VERSION 3.15)
+project(OS-Nano LANGUAGES C CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/build)
 set(LV_CONF_PATH ${CMAKE_SOURCE_DIR}/include/lv_conf.h)

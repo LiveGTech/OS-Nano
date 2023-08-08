@@ -74,6 +74,8 @@ proc::Process* app::launch(String id) {
 
     auto scriptCode = file->readString();
 
+    delete file;
+
     const Count CODE_CHAR_ARRAY_LENGTH = scriptCode.length() + 1;
 
     processTaskState->scriptCodeCharArray = (char*)malloc(CODE_CHAR_ARRAY_LENGTH);
