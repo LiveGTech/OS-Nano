@@ -7,16 +7,8 @@
     Licensed by the LiveG Open-Source Licence, which can be found at LICENCE.md.
 */
 
-#ifndef APP_H_
-#define APP_H_
+var nano = {};
 
-#include <Arduino.h>
-
-#include "proc.h"
-
-namespace app {
-    bool init();
-    proc::Process* launch(String id);
-}
-
-#endif
+nano.hello = function() {
+    print("Hello, world! This has been called from the LiveG OS Nano API.");
+};

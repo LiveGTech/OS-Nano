@@ -24,7 +24,7 @@ namespace display {
     extern unsigned int touchX;
     extern unsigned int touchY;
 
-    void init();
+    bool init();
     void update(unsigned int millisecondsPassed);
 
     void setTouchData(bool isDown, unsigned int x, unsigned int y);

@@ -36,6 +36,7 @@ namespace fs {
             bool isAvailable();
             char read();
             String readString();
+            char* readCharArray();
             void write(char c);
             void start();
             void close();

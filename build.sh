@@ -11,7 +11,14 @@ set -e
 
 SOURCE_DIR=$(dirname "$0")
 
+function buildRootScript {
+    mkdir -p ${2%/*}
+    terser $1 -o $2 -c
+}
+
 pushd $SOURCE_DIR
+    buildRootScript rootsrc/api.js rootfs/system/api.min.js
+
     if [ "$1" == "--sim" ]; then
         source installdev/emsdk/emsdk_env.sh
 

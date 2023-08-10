@@ -15,10 +15,13 @@
 #include "proc.h"
 #include "fs.h"
 
+char* apiCodeCharArray;
+
 struct ProcessTaskState {
     String id;
     char* scriptCodeCharArray;
     duk_context* duktapeContextPtr;
+    bool setupCompleted;
 };
 
 proc::Process* getProcessFromDuktapeContext(duk_context* ctx) {
@@ -33,7 +36,12 @@ void processTask(proc::Process* processPtr) {
     auto state = (ProcessTaskState*)processPtr->taskState;
     auto ctx = state->duktapeContextPtr;
 
-    duk_eval_string_noresult(ctx, state->scriptCodeCharArray);
+    if (!state->setupCompleted) {
+        duk_eval_string_noresult(ctx, apiCodeCharArray);
+        duk_eval_string_noresult(ctx, state->scriptCodeCharArray);
+
+        state->setupCompleted = true;
+    }
 
     processPtr->stopAndDiscard();
 }
@@ -41,6 +49,7 @@ void processTask(proc::Process* processPtr) {
 void processCleanupHandler(proc::Process* processPtr) {
     auto state = (ProcessTaskState*)processPtr->taskState;
 
+    free(state->scriptCodeCharArray);
     duk_destroy_heap(state->duktapeContextPtr);
 }
 
@@ -60,6 +69,18 @@ duk_ret_t native_print(duk_context* ctx) {
     return 0;
 }
 
+bool app::init() {
+    auto file = fs::open("/system/api.min.js", fs::FileMode::READ);
+
+    if (!file) {
+        return false;
+    }
+
+    apiCodeCharArray = file->readCharArray();
+
+    return true;
+}
+
 proc::Process* app::launch(String id) {
     auto processTaskState = new ProcessTaskState();
     auto process = new proc::Process(processTask, processTaskState);
@@ -72,18 +93,10 @@ proc::Process* app::launch(String id) {
         return nullptr;
     }
 
-    auto scriptCode = file->readString();
-
-    delete file;
-
-    const Count CODE_CHAR_ARRAY_LENGTH = scriptCode.length() + 1;
-
-    processTaskState->scriptCodeCharArray = (char*)malloc(CODE_CHAR_ARRAY_LENGTH);
-
-    scriptCode.toCharArray(processTaskState->scriptCodeCharArray, CODE_CHAR_ARRAY_LENGTH);
-
     processTaskState->id = id;
+    processTaskState->scriptCodeCharArray = file->readCharArray();
     processTaskState->duktapeContextPtr = ctx;
+    processTaskState->setupCompleted = false;
 
     duk_push_c_function(ctx, native_print, DUK_VARARGS);
     duk_put_global_string(ctx, "print");

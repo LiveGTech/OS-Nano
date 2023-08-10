@@ -126,6 +126,19 @@ String fs::FileHandle::readString() {
     return data;
 }
 
+char* fs::FileHandle::readCharArray() {
+    String dataString = readString();
+    char* dataCharArray;
+
+    const Count CHAR_ARRAY_LENGTH = dataString.length() + 1;
+
+    dataCharArray = (char*)malloc(CHAR_ARRAY_LENGTH);
+
+    dataString.toCharArray(dataCharArray, CHAR_ARRAY_LENGTH);
+
+    return dataCharArray;
+}
+
 void fs::FileHandle::write(char c) {
     if (!isAvailable()) {
         return;
@@ -164,6 +177,10 @@ void fs::FileHandle::close() {
     openFileHandles.remove(openFileHandles.indexOf(this));
 
     if (_errorOnOpen) {
+        Serial.print("fs: Unable to open file at path `");
+        Serial.print(_path);
+        Serial.println("`");
+
         return;
     }
 

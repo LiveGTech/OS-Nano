@@ -50,6 +50,14 @@ struct HelloTaskState {
     Count count;
 };
 
+void initOrPanic(bool result, String panicMessage) {
+    if (!result) {
+        Serial.println(panicMessage);
+
+        while (true) {}
+    }
+}
+
 void updateCounterTimer(lv_timer_t* timer) {
     lv_label_set_text_fmt(label, "Count: %d", i);
 
@@ -78,12 +86,25 @@ void setup() {
     Serial.begin(115200);
 
     Serial.println("Hello, world!");
-
-    display::init();
+    Serial.flush();
 
     #ifndef GOSN_SIMULATOR
-        SPIFFS.begin();
+        initOrPanic(SPIFFS.begin(), "Couldn't initialise filesystem");
+
+        Serial.println("Filesystem:");
+
+        File root = SPIFFS.open("/");
+
+        while (File file = root.openNextFile()) {
+            Serial.print("- ");
+            Serial.println(file.path());
+        }
+
+        Serial.println("");
     #endif
+
+    initOrPanic(display::init(), "Cannot initialise display");
+    initOrPanic(app::init(), "Cannot initialise app launcher");
 
     label = lv_label_create(lv_scr_act());
 

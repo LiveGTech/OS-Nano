@@ -86,7 +86,7 @@ void readTouch(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
     }
 }
 
-void display::init() {
+bool display::init() {
     lv_init();
 
     #ifndef GOSN_SIMULATOR
@@ -117,6 +117,8 @@ void display::init() {
     touchDriver.read_cb = readTouch;
 
     lv_indev_drv_register(&touchDriver);
+
+    return true;
 }
 
 void display::update(unsigned int millisecondsPassed) {
