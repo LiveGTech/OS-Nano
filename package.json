@@ -4,6 +4,12 @@
     "description": "The edition of the LiveG OS family that runs on low-power, embedded devices.",
     "author": "LiveG Technologies",
     "dependencies": {
+        "@babel/cli": "^7.22.15",
+        "@babel/core": "^7.22.20",
+        "@babel/plugin-transform-arrow-functions": "^7.22.5",
+        "@babel/plugin-transform-block-scoping": "^7.22.15",
+        "@babel/plugin-transform-classes": "^7.22.15",
+        "@babel/plugin-transform-spread": "^7.22.5",
         "terser": "^5.20.0"
     }
 }

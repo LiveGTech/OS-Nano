@@ -13,7 +13,12 @@ SOURCE_DIR=$(dirname "$0")
 
 function buildRootScript {
     mkdir -p ${2%/*}
-    node_modules/.bin/terser $1 -o $2 -c
+
+    npx babel \
+        --plugins @babel/plugin-transform-classes,@babel/plugin-transform-arrow-functions,@babel/plugin-transform-spread,@babel/plugin-transform-block-scoping \
+        $1 -o $2
+
+    npx terser $2 -o $2 -c
 
     printf "// " > src/_forcebuild.cpp
     openssl rand -hex 16 >> src/_forcebuild.cpp
