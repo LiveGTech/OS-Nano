@@ -13,7 +13,10 @@ SOURCE_DIR=$(dirname "$0")
 
 function buildRootScript {
     mkdir -p ${2%/*}
-    terser $1 -o $2 -c
+    node_modules/.bin/terser $1 -o $2 -c
+
+    printf "// " > src/_forcebuild.cpp
+    openssl rand -hex 16 >> src/_forcebuild.cpp
 }
 
 pushd $SOURCE_DIR

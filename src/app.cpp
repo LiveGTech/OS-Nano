@@ -37,8 +37,29 @@ void processTask(proc::Process* processPtr) {
     auto ctx = state->duktapeContextPtr;
 
     if (!state->setupCompleted) {
-        duk_eval_string_noresult(ctx, apiCodeCharArray);
-        duk_eval_string_noresult(ctx, state->scriptCodeCharArray);
+        duk_push_string(ctx, apiCodeCharArray);
+
+        if (duk_peval(ctx) != 0) {
+            Serial.print("[");
+            Serial.print(state->id);
+            Serial.print("] ");
+            Serial.print("API error: ");
+            Serial.println(duk_safe_to_string(ctx, -1));
+        }
+
+        duk_pop(ctx);
+
+        duk_push_string(ctx, state->scriptCodeCharArray);
+
+        if (duk_peval(ctx) != 0) {
+            Serial.print("[");
+            Serial.print(state->id);
+            Serial.print("] ");
+            Serial.print("Script error: ");
+            Serial.println(duk_safe_to_string(ctx, -1));
+        }
+
+        duk_pop(ctx);
 
         state->setupCompleted = true;
     }

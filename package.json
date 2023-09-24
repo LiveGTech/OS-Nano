@@ -1,0 +1,9 @@
+{
+    "name": "liveg-os-nano",
+    "version": "0.1.0",
+    "description": "The edition of the LiveG OS family that runs on low-power, embedded devices.",
+    "author": "LiveG Technologies",
+    "dependencies": {
+        "terser": "^5.20.0"
+    }
+}
