@@ -88,6 +88,8 @@ void setup() {
     Serial.println("Hello, world!");
     Serial.flush();
 
+    delay(0);
+
     #ifndef GOSN_SIMULATOR
         initOrPanic(SPIFFS.begin(), "Couldn't initialise filesystem");
 

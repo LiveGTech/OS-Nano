@@ -15,7 +15,7 @@ function buildRootScript {
     mkdir -p ${2%/*}
 
     npx babel \
-        --plugins @babel/plugin-transform-classes,@babel/plugin-transform-arrow-functions,@babel/plugin-transform-spread,@babel/plugin-transform-block-scoping \
+        --config-file $SOURCE_DIR/.babelrc.json \
         $1 -o $2
 
     npx terser $2 -o $2 -c

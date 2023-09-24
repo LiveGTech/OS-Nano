@@ -16,6 +16,7 @@
 #endif
 
 #include "fs.h"
+#include "common.h"
 #include "datatypes.h"
 
 auto openFileHandles = dataTypes::List<fs::FileHandle>();
@@ -132,7 +133,7 @@ char* fs::FileHandle::readCharArray() {
 
     const Count CHAR_ARRAY_LENGTH = dataString.length() + 1;
 
-    dataCharArray = (char*)malloc(CHAR_ARRAY_LENGTH);
+    dataCharArray = (char*)MALLOC_PSRAM(CHAR_ARRAY_LENGTH);
 
     dataString.toCharArray(dataCharArray, CHAR_ARRAY_LENGTH);
 

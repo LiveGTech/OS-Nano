@@ -1,0 +1,10 @@
+{
+    "plugins": [
+        ["@babel/plugin-transform-classes", {
+            "loose": true
+        }],
+        ["@babel/plugin-transform-arrow-functions"],
+        ["@babel/plugin-transform-spread"],
+        ["@babel/plugin-transform-block-scoping"]
+    ]
+}

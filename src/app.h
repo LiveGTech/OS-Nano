@@ -17,6 +17,7 @@
 namespace app {
     bool init();
     proc::Process* launch(String id);
+    void crash();
 }
 
 #endif

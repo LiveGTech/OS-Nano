@@ -10,6 +10,7 @@
 #include <Arduino.h>
 #include <duktape.h>
 
+#include "common.h"
 #include "datatypes.h"
 #include "app.h"
 #include "proc.h"
@@ -37,9 +38,7 @@ void processTask(proc::Process* processPtr) {
     auto ctx = state->duktapeContextPtr;
 
     if (!state->setupCompleted) {
-        duk_push_string(ctx, apiCodeCharArray);
-
-        if (duk_peval(ctx) != 0) {
+        if (duk_peval_string(ctx, apiCodeCharArray) != 0) {
             Serial.print("[");
             Serial.print(state->id);
             Serial.print("] ");
@@ -49,9 +48,7 @@ void processTask(proc::Process* processPtr) {
 
         duk_pop(ctx);
 
-        duk_push_string(ctx, state->scriptCodeCharArray);
-
-        if (duk_peval(ctx) != 0) {
+        if (duk_peval_string(ctx, state->scriptCodeCharArray) != 0) {
             Serial.print("[");
             Serial.print(state->id);
             Serial.print("] ");
@@ -102,11 +99,30 @@ bool app::init() {
     return true;
 }
 
+void* customMalloc(void* udata, duk_size_t size) {
+    return MALLOC_PSRAM(size);
+}
+
+void* customRealloc(void* udata, void* ptr, duk_size_t size) {
+    return REALLOC_PSRAM(ptr, size);
+}
+
+void customFree(void* udata, void* ptr) {
+    free(ptr);
+}
+
+void fatalHandler(void* udata, const char* msg) {
+    Serial.println(msg);
+    Serial.flush();
+
+    while (true) {} // TODO: Terminate process
+}
+
 proc::Process* app::launch(String id) {
     auto processTaskState = new ProcessTaskState();
     auto process = new proc::Process(processTask, processTaskState);
 
-    auto ctx = duk_create_heap(NULL, NULL, NULL, process, NULL);
+    auto ctx = duk_create_heap(customMalloc, customRealloc, customFree, process, fatalHandler);
 
     auto file = fs::open("/apps/" + id + "/app.js", fs::FileMode::READ);
 
