@@ -797,6 +797,8 @@
 #define LV_USE_DEMO_SCROLL          0
 /*--END OF LV_CONF_H--*/
 
+#define LV_USE_FS_MEMFS
+
 #endif /*LV_CONF_H*/
 
 #endif /*End of "Content enable"*/

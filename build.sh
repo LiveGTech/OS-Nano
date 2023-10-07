@@ -24,8 +24,22 @@ function buildRootScript {
     openssl rand -hex 16 >> src/_forcebuild.cpp
 }
 
+function buildFont {
+    mkdir -p ${2%/*}
+
+    npx lv_font_conv \
+        --font $1 \
+        --format bin \
+        --size $3 \
+        --range 0x20-0xFB04 \
+        --bpp 3 \
+        -o $2
+}
+
 pushd $SOURCE_DIR
-    buildRootScript rootsrc/api.js rootfs/system/api.min.js
+    buildRootScript rootsrc/system/api.js rootfs/system/api.min.js
+
+    buildFont rootsrc/system/fonts/main.otf rootfs/system/fonts/main.gosnfont 32
 
     if [ "$1" == "--sim" ]; then
         source installdev/emsdk/emsdk_env.sh
