@@ -59,7 +59,11 @@ void initOrPanic(bool result, String panicMessage) {
 }
 
 void updateCounterTimer(lv_timer_t* timer) {
-    lv_label_set_text_fmt(label, "Count: %d", i);
+    if (display::touchIsDown) {
+        lv_label_set_text(label, "12:34");
+    } else {
+        lv_label_set_text_fmt(label, "%d", i);
+    }
 
     if (display::touchX != lastTouchX || display::touchY != lastTouchY) {
         lastTouchX = display::touchX;
@@ -108,13 +112,25 @@ void setup() {
     initOrPanic(display::init(), "Cannot initialise display");
     initOrPanic(app::init(), "Cannot initialise app launcher");
 
+    static lv_font_t* font = lv_font_load("S:/system/fonts/main.gosnfont");
+
     label = lv_label_create(lv_scr_act());
 
     lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(label, lv_pct(80));
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_text_font(label, display::FONT_NUMERALS_64, 0);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
-    lv_label_set_text(label, "LiveG OS Nano");
+    lv_label_set_text(label, "12:34");
+
+    static lv_obj_t* subtext = lv_label_create(lv_scr_act());
+
+    lv_label_set_long_mode(subtext, LV_LABEL_LONG_WRAP);
+    lv_obj_set_width(subtext, lv_pct(80));
+    lv_obj_set_style_text_align(subtext, LV_TEXT_ALIGN_CENTER, 0);
+    lv_obj_set_style_text_font(subtext, display::FONT_MAIN_20, 0);
+    lv_obj_align(subtext, LV_ALIGN_CENTER, 0, 48);
+    lv_label_set_text(subtext, "LiveG OS Nano");
 
     static lv_style_t lineStyle;
 

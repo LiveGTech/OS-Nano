@@ -18,11 +18,19 @@
     #include <stdio.h>
 #endif
 
+#include "datatypes.h"
+
 namespace fs {
     enum FileMode {
         READ,
         WRITE,
         APPEND
+    };
+
+    enum SeekOrigin {
+        START,
+        CURRENT,
+        END
     };
 
     class FileHandle {
@@ -38,6 +46,9 @@ namespace fs {
             String readString();
             char* readCharArray();
             void write(char c);
+            Count getSize();
+            Count tell();
+            void seek(Count position, SeekOrigin origin = SeekOrigin::START);
             void start();
             void close();
 

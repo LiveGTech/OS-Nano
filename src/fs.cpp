@@ -156,16 +156,70 @@ void fs::FileHandle::write(char c) {
     #endif
 }
 
-void fs::FileHandle::start() {
+Count fs::FileHandle::getSize() {
+    if (!isAvailable()) {
+        return 0;
+    }
+
+    #ifndef GOSN_SIMULATOR
+        return _file.size();
+    #else
+        long currentPosition = ftell(_file);
+
+        fseek(_file, 0, SEEK_END);
+
+        Count size = ftell(_file);
+
+        fseek(_file, currentPosition, SEEK_SET);
+
+        return size;
+    #endif
+}
+
+Count fs::FileHandle::tell() {
+    if (!isAvailable()) {
+        return 0;
+    }
+
+    #ifndef GOSN_SIMULATOR
+        return _file.position();
+    #else
+        return ftell(_file);
+    #endif
+}
+
+void fs::FileHandle::seek(Count position, SeekOrigin origin) {
     if (!isAvailable()) {
         return;
     }
 
+    Count originPosition;
+
+    switch (origin) {
+        case fs::SeekOrigin::START:
+            originPosition = 0;
+            break;
+
+        case fs::SeekOrigin::CURRENT:
+            originPosition = tell();
+            break;
+
+        case fs::SeekOrigin::END:
+            originPosition = getSize();
+            break;
+    }
+
+    position += originPosition;
+
     #ifndef GOSN_SIMULATOR
-        _file.seek(0);
+        _file.seek(position);
     #else
-        fseek(_file, 0, SEEK_SET);
+        fseek(_file, position, SEEK_SET);
     #endif
+}
+
+void fs::FileHandle::start() {
+    seek(0);
 }
 
 void fs::FileHandle::close() {

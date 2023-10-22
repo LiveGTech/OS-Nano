@@ -14,9 +14,15 @@
 
 #include "config.h"
 #include "display.h"
+#include "datatypes.h"
+#include "fs.h"
 
 static lv_disp_draw_buf_t drawBuffer;
 static lv_color_t buffer[GOSN_SCREEN_WIDTH * 10];
+
+lv_font_t* display::FONT_MAIN_20;
+lv_font_t* display::FONT_NUMERALS_32;
+lv_font_t* display::FONT_NUMERALS_64;
 
 #ifndef GOSN_SIMULATOR
     TFT_eSPI tft = TFT_eSPI(GOSN_SCREEN_WIDTH, GOSN_SCREEN_HEIGHT);
@@ -86,6 +92,92 @@ void readTouch(lv_indev_drv_t* indev_driver, lv_indev_data_t* data) {
     }
 }
 
+bool fsReadyCallback(lv_fs_drv_t* fsDriver) {
+    return true;
+}
+
+void* fsOpenCallback(lv_fs_drv_t* fsDriver, const char* path, lv_fs_mode_t mode) {
+    fs::FileMode nativeMode;
+
+    switch (mode) {
+        case LV_FS_MODE_RD:
+            nativeMode = fs::FileMode::READ;
+            break;
+
+        case LV_FS_MODE_WR:
+            nativeMode = fs::FileMode::WRITE;
+            break;
+
+        default:
+            return nullptr;
+    }
+
+    return (void*)fs::open(path, nativeMode);
+}
+
+lv_fs_res_t fsCloseCallback(lv_fs_drv_t* fsDriver, void* file) {
+    ((fs::FileHandle*)file)->close();
+
+    return LV_FS_RES_OK;
+}
+
+lv_fs_res_t fsReadCallback(lv_fs_drv_t* fsDriver, void* file, void* buffer, uint32_t bytesToRead, uint32_t* actualBytesRead) {
+    Count i = 0;
+
+    auto nativeFile = (fs::FileHandle*)file;
+
+    while (bytesToRead > 0) {
+        if (!nativeFile->isAvailable()) {
+            return LV_FS_RES_OK;
+        }
+
+        char c = nativeFile->read();
+
+        ((char*)buffer)[i++] = c;
+
+        bytesToRead--;
+        (*actualBytesRead)++;
+    }
+
+    return LV_FS_RES_OK;
+}
+
+lv_fs_res_t fsSeekCallback(lv_fs_drv_t* fsDriver, void* file, uint32_t pos, lv_fs_whence_t whence) {
+    auto nativeFile = (fs::FileHandle*)file;
+
+    if (!nativeFile->isAvailable()) {
+        return LV_FS_RES_OK;
+    }
+
+    switch (whence) {
+        case LV_FS_SEEK_SET:
+            nativeFile->seek(pos, fs::SeekOrigin::START);
+            break;
+
+        case LV_FS_SEEK_CUR:
+            nativeFile->seek(pos, fs::SeekOrigin::CURRENT);
+            break;
+
+        case LV_FS_SEEK_END:
+            nativeFile->seek(pos, fs::SeekOrigin::END);
+            break;
+    }
+
+    return LV_FS_RES_OK;
+}
+
+lv_fs_res_t fsTellCallback(lv_fs_drv_t* fsDriver, void* file, uint32_t* posPtr) {
+    auto nativeFile = (fs::FileHandle*)file;
+
+    if (!nativeFile->isAvailable()) {
+        return LV_FS_RES_OK;
+    }
+
+    *posPtr = nativeFile->tell();
+
+    return LV_FS_RES_OK;
+}
+
 bool display::init() {
     lv_init();
 
@@ -117,6 +209,31 @@ bool display::init() {
     touchDriver.read_cb = readTouch;
 
     lv_indev_drv_register(&touchDriver);
+
+    static lv_fs_drv_t fsDriver;
+
+    lv_fs_drv_init(&fsDriver);
+
+    // We can implement all of these but some are not needed at the moment
+    fsDriver.letter = 'S';
+    fsDriver.ready_cb = fsReadyCallback;
+    fsDriver.open_cb = fsOpenCallback;
+    fsDriver.close_cb = fsCloseCallback;
+    fsDriver.read_cb = fsReadCallback;
+    fsDriver.write_cb = NULL;
+    fsDriver.seek_cb = fsSeekCallback;
+    fsDriver.tell_cb = fsTellCallback;
+    fsDriver.dir_open_cb = NULL;
+    fsDriver.dir_read_cb = NULL;
+    fsDriver.dir_close_cb = NULL;
+
+    lv_fs_drv_register(&fsDriver);
+
+    FONT_MAIN_20 = lv_font_load("S:/system/fonts/main-20.gosnf");
+    FONT_NUMERALS_32 = lv_font_load("S:/system/fonts/numerals-32.gosnf");
+    FONT_NUMERALS_64 = lv_font_load("S:/system/fonts/numerals-64.gosnf");
+
+    Serial.println("Font loaded");
 
     return true;
 }

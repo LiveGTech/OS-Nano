@@ -20,6 +20,10 @@
 #include "config.h"
 
 namespace display {
+    extern lv_font_t* FONT_MAIN_20;
+    extern lv_font_t* FONT_NUMERALS_32;
+    extern lv_font_t* FONT_NUMERALS_64;
+
     extern bool touchIsDown;
     extern unsigned int touchX;
     extern unsigned int touchY;

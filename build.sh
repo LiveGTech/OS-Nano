@@ -12,6 +12,8 @@ set -e
 SOURCE_DIR=$(dirname "$0")
 
 function buildRootScript {
+    echo "Building root script \`$2\`..."
+
     mkdir -p ${2%/*}
 
     npx babel \
@@ -25,21 +27,26 @@ function buildRootScript {
 }
 
 function buildFont {
+    echo "Building font \`$2\`..."
+
     mkdir -p ${2%/*}
 
     npx lv_font_conv \
         --font $1 \
         --format bin \
         --size $3 \
-        --range 0x20-0xFB04 \
-        --bpp 3 \
+        --range $4 \
+        --bpp 2 \
+        --no-compress \
         -o $2
 }
 
 pushd $SOURCE_DIR
     buildRootScript rootsrc/system/api.js rootfs/system/api.min.js
 
-    buildFont rootsrc/system/fonts/main.otf rootfs/system/fonts/main.gosnfont 32
+    buildFont rootsrc/system/fonts/main.otf rootfs/system/fonts/main-20.gosnf 20 0x20-0xFB04
+    buildFont rootsrc/system/fonts/main.otf rootfs/system/fonts/numerals-32.gosnf 32 0x20,0x22,0x25,0x27,0x2C,0x2D,0x2E,0x2F,0x30-0x39,0x3A
+    buildFont rootsrc/system/fonts/main.otf rootfs/system/fonts/numerals-64.gosnf 64 0x20,0x22,0x25,0x27,0x2C,0x2D,0x2E,0x2F,0x30-0x39,0x3A
 
     if [ "$1" == "--sim" ]; then
         source installdev/emsdk/emsdk_env.sh
