@@ -16,9 +16,13 @@ function buildRootScript {
 
     mkdir -p ${2%/*}
 
+    echo "- Transforming script syntax..."
+
     npx babel \
         --config-file $SOURCE_DIR/.babelrc.json \
         $1 -o $2
+
+    echo "- Minifying script..."
 
     npx terser $2 -o $2 -c
 

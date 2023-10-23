@@ -112,8 +112,6 @@ void setup() {
     initOrPanic(display::init(), "Cannot initialise display");
     initOrPanic(app::init(), "Cannot initialise app launcher");
 
-    static lv_font_t* font = lv_font_load("S:/system/fonts/main.gosnfont");
-
     label = lv_label_create(lv_scr_act());
 
     lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
