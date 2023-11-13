@@ -15,17 +15,11 @@
 #include "app.h"
 #include "proc.h"
 #include "fs.h"
+#include "api.h"
 
 char* apiCodeCharArray;
 
-struct ProcessTaskState {
-    String id;
-    char* scriptCodeCharArray;
-    duk_context* duktapeContextPtr;
-    bool setupCompleted;
-};
-
-proc::Process* getProcessFromDuktapeContext(duk_context* ctx) {
+proc::Process* app::getProcessFromDuktapeContext(duk_context* ctx) {
     duk_memory_functions functions;
 
     duk_get_memory_functions(ctx, &functions);
@@ -33,8 +27,14 @@ proc::Process* getProcessFromDuktapeContext(duk_context* ctx) {
     return (proc::Process*)functions.udata;
 }
 
+app::ProcessTaskState* app::getStateFromDuktapeContext(duk_context* ctx) {
+    auto processPtr = app::getProcessFromDuktapeContext(ctx);
+
+    return (app::ProcessTaskState*)processPtr->taskState;
+}
+
 void processTask(proc::Process* processPtr) {
-    auto state = (ProcessTaskState*)processPtr->taskState;
+    auto state = (app::ProcessTaskState*)processPtr->taskState;
     auto ctx = state->duktapeContextPtr;
 
     if (!state->setupCompleted) {
@@ -65,26 +65,10 @@ void processTask(proc::Process* processPtr) {
 }
 
 void processCleanupHandler(proc::Process* processPtr) {
-    auto state = (ProcessTaskState*)processPtr->taskState;
+    auto state = (app::ProcessTaskState*)processPtr->taskState;
 
     free(state->scriptCodeCharArray);
     duk_destroy_heap(state->duktapeContextPtr);
-}
-
-duk_ret_t native_print(duk_context* ctx) {
-    auto processPtr = getProcessFromDuktapeContext(ctx);
-    auto state = (ProcessTaskState*)processPtr->taskState;
-
-    duk_push_string(ctx, " ");
-    duk_insert(ctx, 0);
-    duk_join(ctx, duk_get_top(ctx) - 1);
-
-    Serial.print("[");
-    Serial.print(state->id);
-    Serial.print("] ");
-    Serial.println(duk_safe_to_string(ctx, -1));
-
-    return 0;
 }
 
 bool app::init() {
@@ -119,7 +103,7 @@ void fatalHandler(void* udata, const char* msg) {
 }
 
 proc::Process* app::launch(String id) {
-    auto processTaskState = new ProcessTaskState();
+    auto processTaskState = new app::ProcessTaskState();
     auto process = new proc::Process(processTask, processTaskState);
 
     auto ctx = duk_create_heap(customMalloc, customRealloc, customFree, process, fatalHandler);
@@ -134,9 +118,13 @@ proc::Process* app::launch(String id) {
     processTaskState->scriptCodeCharArray = file->readCharArray();
     processTaskState->duktapeContextPtr = ctx;
     processTaskState->setupCompleted = false;
+    processTaskState->ownedElements = dataTypes::List<app::Element>();
 
-    duk_push_c_function(ctx, native_print, DUK_VARARGS);
+    duk_push_c_function(ctx, api::print, DUK_VARARGS);
     duk_put_global_string(ctx, "print");
+
+    duk_push_c_function(ctx, api::addElement, 2);
+    duk_put_global_string(ctx, "_nano_addElement");
 
     process->setCleanupHandler(processCleanupHandler);
 

@@ -10,6 +10,7 @@
 #include "datatypes.h"
 #include "proc.h"
 #include "fs.h"
+#include "app.h"
 
 template<typename T> T* store(T value) {
     auto storedValue = new dataTypes::StoredValue<T>(value);
@@ -357,6 +358,7 @@ template class dataTypes::StoredValue<int>;
 template class dataTypes::List<proc::Process>;
 template class dataTypes::List<int>;
 template class dataTypes::List<fs::FileHandle>;
+template class dataTypes::List<app::Element>;
 
 template int* store<int>(int value);
 template int discard<int>(int* itemPtr);

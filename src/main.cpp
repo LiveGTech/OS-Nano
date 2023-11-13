@@ -23,6 +23,10 @@
 #include "app.h"
 #include "fs.h"
 
+#ifndef GOSN_SIMULATOR
+    SET_LOOP_TASK_STACK_SIZE(16 * 1024); // 16 KiB
+#endif
+
 static int i = 0;
 
 double lastTimestamp = 0;

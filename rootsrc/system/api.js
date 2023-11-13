@@ -7,6 +7,13 @@
     Licensed by the LiveG Open-Source Licence, which can be found at LICENCE.md.
 */
 
+const _NANO_ELEMENT_TYPE_IDS = {
+    "": 0,
+    "Screen": 1,
+    "Container": 2,
+    "Paragraph": 3
+};
+
 var nano = {};
 
 nano.Element = class {
@@ -15,13 +22,18 @@ nano.Element = class {
 
         this._parent = null;
         this._children = [];
+        this._id = null;
     }
 
     add() {
         for (var i = 0; i < arguments.length; i++) {
+            var child = arguments[i];
+
             this._children.push(arguments[i]);
 
-            arguments[i].parent = this;
+            arguments[i]._parent = this;
+
+            child._register();
         }
 
         return this;
@@ -32,18 +44,36 @@ nano.Element = class {
         var delimeter = lastChild ? "" : ",";
 
         if (this._children.length == 0) {
-            print(`${indents}${this._type}() ()${delimeter}`);
+            print(`${indents}${this._type}(${this._id}) ()${delimeter}`);
+            // print(`${indents}${this._type}() ()${delimeter}`);
 
             return;
         }
 
-        print(`${indents}${this._type} (`);
+        print(`${indents}${this._type}(${this._id}) (`);
+        // print(`${indents}${this._type} (`);
 
         for (var i = 0; i < this._children.length; i++) {
             this._children[i]._print(indent + 1, i == this._children.length - 1);
         }
 
         print(`${indents})${delimeter}`);
+    }
+
+    _register() {
+        if (this._id != null) {
+            return;
+        }
+
+        if (this._type != "Screen" && this._parent._id == null) {
+            return;
+        }
+
+        this._id = _nano_addElement(this._parent ? this._parent._id : null, _NANO_ELEMENT_TYPE_IDS[this._type]);
+
+        for (var i = 0; i < this._children.length; i++) {
+            this._children[i]._register();
+        }
     }
 
     print() {
@@ -77,4 +107,10 @@ nano.hello = function() {
     var classTest = new ClassTest();
 
     classTest.eachArg(...["a", "b", "c"]);
+};
+
+nano.render = function() {
+    for (var i = 0; i < arguments.length; i++) {
+        arguments[i]._register();
+    }
 };
