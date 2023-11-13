@@ -22,20 +22,20 @@
 
 namespace fs {
     enum FileMode {
-        READ,
-        WRITE,
-        APPEND
+        MODE_READ,
+        MODE_WRITE,
+        MODE_APPEND
     };
 
     enum SeekOrigin {
-        START,
-        CURRENT,
-        END
+        ORIGIN_START,
+        ORIGIN_CURRENT,
+        ORIGIN_END
     };
 
     class FileHandle {
         public:
-            FileHandle(String path, FileMode mode = FileMode::READ);
+            FileHandle(String path, FileMode mode = FileMode::MODE_READ);
             ~FileHandle();
 
             String path();
@@ -48,7 +48,7 @@ namespace fs {
             void write(char c);
             Count getSize();
             Count tell();
-            void seek(Count position, SeekOrigin origin = SeekOrigin::START);
+            void seek(Count position, SeekOrigin origin = SeekOrigin::ORIGIN_START);
             void start();
             void close();
 
@@ -65,7 +65,7 @@ namespace fs {
             #endif
     };
 
-    FileHandle* open(String path, FileMode mode = FileMode::READ);
+    FileHandle* open(String path, FileMode mode = FileMode::MODE_READ);
     bool isFileOpen(String path);
 }
 

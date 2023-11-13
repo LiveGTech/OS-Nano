@@ -45,7 +45,7 @@ duk_ret_t api::addElement(duk_context* ctx) {
     int type = duk_get_int(ctx, 1);
     app::Element* parentElement = nullptr;
 
-    if (type != app::ElementType::SCREEN) {
+    if (type != app::ElementType::TYPE_SCREEN) {
         parentElement = getElement(ctx, 0);
 
         if (!parentElement) {
@@ -55,16 +55,18 @@ duk_ret_t api::addElement(duk_context* ctx) {
 
     auto element = new app::Element();
 
+    element->type = (app::ElementType)type;
+
     switch (type) {
-        case app::ElementType::SCREEN:
+        case app::ElementType::TYPE_SCREEN:
             element->object = lv_obj_create(NULL);
             break;
 
-        case app::ElementType::CONTAINER:
+        case app::ElementType::TYPE_CONTAINER:
             element->object = lv_obj_create(parentElement->object);
             break;
 
-        case app::ElementType::PARAGRAPH:
+        case app::ElementType::TYPE_PARAGRAPH:
             element->object = lv_label_create(parentElement->object);
             break;
 
@@ -75,4 +77,38 @@ duk_ret_t api::addElement(duk_context* ctx) {
     duk_push_int(ctx, state->ownedElements.push(element) - 1);
 
     return 1;
+}
+
+duk_ret_t api::setElementProp(duk_context* ctx) {
+    auto state = app::getStateFromDuktapeContext(ctx);
+    auto element = getElement(ctx, 0);
+    auto property = duk_get_int(ctx, 1);
+
+    if (!element) {
+        return DUK_RET_REFERENCE_ERROR;
+    }
+
+    switch (property) {
+        case app::ElementProperty::PROP_SHOWING:
+            if (element->type == app::ElementType::TYPE_SCREEN) {
+                if (duk_get_boolean(ctx, 2)) {
+                    lv_scr_load(element->object);
+                }
+
+                return 0;
+            }
+
+            return DUK_RET_TYPE_ERROR;
+
+        case app::ElementProperty::PROP_TEXT:
+            if (element->type == app::ElementType::TYPE_PARAGRAPH) {
+                lv_label_set_text(element->object, duk_safe_to_string(ctx, 2));
+
+                return 0;
+            }
+
+            return DUK_RET_TYPE_ERROR;
+    }
+
+    return DUK_RET_TYPE_ERROR;
 }

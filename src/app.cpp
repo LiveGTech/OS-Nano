@@ -72,7 +72,7 @@ void processCleanupHandler(proc::Process* processPtr) {
 }
 
 bool app::init() {
-    auto file = fs::open("/system/api.min.js", fs::FileMode::READ);
+    auto file = fs::open("/system/api.min.js", fs::FileMode::MODE_READ);
 
     if (!file) {
         return false;
@@ -108,7 +108,7 @@ proc::Process* app::launch(String id) {
 
     auto ctx = duk_create_heap(customMalloc, customRealloc, customFree, process, fatalHandler);
 
-    auto file = fs::open("/apps/" + id + "/app.js", fs::FileMode::READ);
+    auto file = fs::open("/apps/" + id + "/app.js", fs::FileMode::MODE_READ);
 
     if (!file) {
         return nullptr;
@@ -125,6 +125,9 @@ proc::Process* app::launch(String id) {
 
     duk_push_c_function(ctx, api::addElement, 2);
     duk_put_global_string(ctx, "_nano_addElement");
+
+    duk_push_c_function(ctx, api::setElementProp, 3);
+    duk_put_global_string(ctx, "_nano_setElementProp");
 
     process->setCleanupHandler(processCleanupHandler);
 

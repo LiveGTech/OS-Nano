@@ -19,10 +19,16 @@
 
 namespace app {
     enum ElementType {
-        NONE = 0,
-        SCREEN = 1,
-        CONTAINER = 2,
-        PARAGRAPH = 3
+        TYPE_NONE = 0,
+        TYPE_SCREEN = 1,
+        TYPE_CONTAINER = 2,
+        TYPE_PARAGRAPH = 3
+    };
+
+    enum ElementProperty {
+        PROP_NONE = 0,
+        PROP_SHOWING = 1,
+        PROP_TEXT = 2
     };
 
     struct Element {

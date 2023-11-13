@@ -101,11 +101,11 @@ void* fsOpenCallback(lv_fs_drv_t* fsDriver, const char* path, lv_fs_mode_t mode)
 
     switch (mode) {
         case LV_FS_MODE_RD:
-            nativeMode = fs::FileMode::READ;
+            nativeMode = fs::FileMode::MODE_READ;
             break;
 
         case LV_FS_MODE_WR:
-            nativeMode = fs::FileMode::WRITE;
+            nativeMode = fs::FileMode::MODE_WRITE;
             break;
 
         default:
@@ -151,15 +151,15 @@ lv_fs_res_t fsSeekCallback(lv_fs_drv_t* fsDriver, void* file, uint32_t pos, lv_f
 
     switch (whence) {
         case LV_FS_SEEK_SET:
-            nativeFile->seek(pos, fs::SeekOrigin::START);
+            nativeFile->seek(pos, fs::SeekOrigin::ORIGIN_START);
             break;
 
         case LV_FS_SEEK_CUR:
-            nativeFile->seek(pos, fs::SeekOrigin::CURRENT);
+            nativeFile->seek(pos, fs::SeekOrigin::ORIGIN_CURRENT);
             break;
 
         case LV_FS_SEEK_END:
-            nativeFile->seek(pos, fs::SeekOrigin::END);
+            nativeFile->seek(pos, fs::SeekOrigin::ORIGIN_END);
             break;
     }
 

@@ -23,14 +23,14 @@ auto openFileHandles = dataTypes::List<fs::FileHandle>();
 
 const char* getStdFileMode(fs::FileMode mode) {
     switch (mode) {
-        case fs::FileMode::READ:
+        case fs::FileMode::MODE_READ:
         default:
             return "r";
 
-        case fs::FileMode::WRITE:
+        case fs::FileMode::MODE_WRITE:
             return "w";
 
-        case fs::FileMode::APPEND:
+        case fs::FileMode::MODE_APPEND:
             return "a";
     }
 }
@@ -145,7 +145,7 @@ void fs::FileHandle::write(char c) {
         return;
     }
 
-    if (!(_mode == FileMode::WRITE || _mode == FileMode::APPEND)) {
+    if (!(_mode == FileMode::MODE_WRITE || _mode == FileMode::MODE_APPEND)) {
         return;
     }
 
@@ -196,15 +196,15 @@ void fs::FileHandle::seek(Count position, SeekOrigin origin) {
     Count originPosition;
 
     switch (origin) {
-        case fs::SeekOrigin::START:
+        case fs::SeekOrigin::ORIGIN_START:
             originPosition = 0;
             break;
 
-        case fs::SeekOrigin::CURRENT:
+        case fs::SeekOrigin::ORIGIN_CURRENT:
             originPosition = tell();
             break;
 
-        case fs::SeekOrigin::END:
+        case fs::SeekOrigin::ORIGIN_END:
             originPosition = getSize();
             break;
     }

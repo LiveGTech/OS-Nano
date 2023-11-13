@@ -14,6 +14,12 @@ const _NANO_ELEMENT_TYPE_IDS = {
     "Paragraph": 3
 };
 
+const _nano_elementProps = {
+    NONE: 0,
+    SHOWING: 1,
+    TEXT: 2
+};
+
 var nano = {};
 
 nano.Element = class {
@@ -23,6 +29,7 @@ nano.Element = class {
         this._parent = null;
         this._children = [];
         this._id = null;
+        this._propsToSet = {};
     }
 
     add() {
@@ -71,9 +78,37 @@ nano.Element = class {
 
         this._id = _nano_addElement(this._parent ? this._parent._id : null, _NANO_ELEMENT_TYPE_IDS[this._type]);
 
+        var propIdsToSet = Object.keys(this._propsToSet);
+
+        for (var i = 0; i < propIdsToSet.length; i++) {
+            var propId = propIdsToSet[i];
+
+            _nano_setElementProp(this._id, Number(propId), this._propsToSet[propId]);
+        }
+
+        this._propsToSet = {};
+
         for (var i = 0; i < this._children.length; i++) {
             this._children[i]._register();
         }
+    }
+
+    _setProp(propId, propValue) {
+        if (this._id == null) {
+            this._propsToSet[propId] = propValue;
+
+            return;
+        }
+
+        _nano_setElementProp(this._id, propId, propValue);
+    }
+
+    setText(text) {
+        this._setProp(_nano_elementProps.TEXT, text);
+    }
+
+    screenJump() {
+        this._setProp(_nano_elementProps.SHOWING, true);
     }
 
     print() {
