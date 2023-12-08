@@ -20,10 +20,6 @@
 static lv_disp_draw_buf_t drawBuffer;
 static lv_color_t buffer[GOSN_SCREEN_WIDTH * 10];
 
-lv_font_t* display::FONT_MAIN_20;
-lv_font_t* display::FONT_NUMERALS_32;
-lv_font_t* display::FONT_NUMERALS_64;
-
 #ifndef GOSN_SIMULATOR
     TFT_eSPI tft = TFT_eSPI(GOSN_SCREEN_WIDTH, GOSN_SCREEN_HEIGHT);
 
@@ -228,10 +224,6 @@ bool display::init() {
     fsDriver.dir_close_cb = NULL;
 
     lv_fs_drv_register(&fsDriver);
-
-    FONT_MAIN_20 = lv_font_load("S:/system/fonts/main-20.gosnf");
-    FONT_NUMERALS_32 = lv_font_load("S:/system/fonts/numerals-32.gosnf");
-    FONT_NUMERALS_64 = lv_font_load("S:/system/fonts/numerals-64.gosnf");
 
     Serial.println("Font loaded");
 

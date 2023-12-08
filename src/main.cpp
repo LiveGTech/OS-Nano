@@ -22,6 +22,7 @@
 #include "proc.h"
 #include "app.h"
 #include "fs.h"
+#include "theme.h"
 
 #ifndef GOSN_SIMULATOR
     SET_LOOP_TASK_STACK_SIZE(16 * 1024); // 16 KiB
@@ -114,6 +115,7 @@ void setup() {
     #endif
 
     initOrPanic(display::init(), "Cannot initialise display");
+    initOrPanic(theme::init(), "Cannot initialise theme manager");
     initOrPanic(app::init(), "Cannot initialise app launcher");
 
     label = lv_label_create(lv_scr_act());
@@ -121,7 +123,7 @@ void setup() {
     lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(label, lv_pct(80));
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_text_font(label, display::FONT_NUMERALS_64, 0);
+    lv_obj_set_style_text_font(label, theme::FONT_NUMERALS_64, 0);
     lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
     lv_label_set_text(label, "12:34");
 
@@ -130,7 +132,7 @@ void setup() {
     lv_label_set_long_mode(subtext, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(subtext, lv_pct(80));
     lv_obj_set_style_text_align(subtext, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_text_font(subtext, display::FONT_MAIN_20, 0);
+    lv_obj_set_style_text_font(subtext, theme::FONT_MAIN_20, 0);
     lv_obj_align(subtext, LV_ALIGN_CENTER, 0, 48);
     lv_label_set_text(subtext, "LiveG OS Nano");
 
