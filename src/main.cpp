@@ -132,7 +132,6 @@ void setup() {
     lv_label_set_long_mode(subtext, LV_LABEL_LONG_WRAP);
     lv_obj_set_width(subtext, lv_pct(80));
     lv_obj_set_style_text_align(subtext, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_text_font(subtext, theme::FONT_MAIN_20, 0);
     lv_obj_align(subtext, LV_ALIGN_CENTER, 0, 48);
     lv_label_set_text(subtext, "LiveG OS Nano");
 
