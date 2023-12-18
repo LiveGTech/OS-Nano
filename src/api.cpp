@@ -60,14 +60,27 @@ duk_ret_t api::addElement(duk_context* ctx) {
     switch (type) {
         case app::ElementType::TYPE_SCREEN:
             element->object = lv_obj_create(NULL);
+
+            lv_obj_set_layout(element->object, LV_LAYOUT_FLEX);
+            lv_obj_set_flex_flow(element->object, LV_FLEX_FLOW_ROW_WRAP);
+
             break;
 
         case app::ElementType::TYPE_CONTAINER:
             element->object = lv_obj_create(parentElement->object);
+
+            lv_obj_set_width(element->object, lv_pct(100));
+            lv_obj_set_height(element->object, LV_SIZE_CONTENT);
+            lv_obj_set_layout(element->object, LV_LAYOUT_FLEX);
+            lv_obj_set_flex_flow(element->object, LV_FLEX_FLOW_ROW_WRAP);
+
             break;
 
         case app::ElementType::TYPE_PARAGRAPH:
             element->object = lv_label_create(parentElement->object);
+
+            lv_obj_set_width(element->object, lv_pct(100));
+
             break;
 
         default:

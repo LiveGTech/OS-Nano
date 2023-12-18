@@ -34,6 +34,7 @@ bool theme::init() {
 
     lv_style_init(&containerStyle);
     lv_style_set_border_width(&containerStyle, 0);
+    lv_style_set_pad_all(&containerStyle, 0);
     lv_style_set_radius(&containerStyle, 0);
     lv_style_set_bg_opa(&containerStyle, LV_OPA_TRANSP);
 

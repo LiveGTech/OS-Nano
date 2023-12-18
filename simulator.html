@@ -38,6 +38,10 @@
 
                     Module.display_setTouchData(true, lastTouchX, lastTouchY);
                 });
+
+                Module.onRuntimeInitialized = function() {
+                    Module.display_render();
+                };
             });
         </script>
     </head>

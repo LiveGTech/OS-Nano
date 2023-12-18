@@ -31,6 +31,8 @@ unsigned int display::touchX = 0;
 unsigned int display::touchY = 0;
 
 #ifdef GOSN_SIMULATOR
+    uint8_t dataToRender[GOSN_SCREEN_WIDTH * GOSN_SCREEN_HEIGHT * 4];
+
     EM_JS(void, sendDisplayDataToSimulator, (uint8_t* dataPtr, uint32_t x1, uint32_t y1, uint32_t width, uint32_t height), {
         var length = width * height * 4;
         var buffer = new Uint8ClampedArray(HEAPU8.buffer.slice(dataPtr), 0, length);
@@ -39,6 +41,10 @@ unsigned int display::touchY = 0;
         var imageData = new ImageData(buffer, width, height);
 
         context.putImageData(imageData, x1, y1);
+
+        requestAnimationFrame(function() {
+            Module.display_render();
+        });
     });
 #endif
 
@@ -52,26 +58,22 @@ void flush(lv_disp_drv_t* displayDriver, const lv_area_t* renderArea, lv_color_t
         tft.pushColors((uint16_t*)&colours->full, width * height, true);
         tft.endWrite();
     #else
-        uint8_t rgba8888ChannelData[width * height * 4];
-
         for (uint32_t y = 0; y < height; y++) {
             for (uint32_t x = 0; x < width; x++) {
                 uint32_t i = (y * width) + x;
-                uint32_t j = i * 4;
+                uint32_t j = (((renderArea->y1 + y) * GOSN_SCREEN_WIDTH) + (renderArea->x1 + x)) * 4;
                 uint16_t rgb565 = ((uint16_t*)&colours->full)[i];
 
                 uint8_t r565 = (rgb565 & 0b1111100000000000) >> 11;
                 uint8_t g565 = (rgb565 & 0b0000011111100000) >> 5;
                 uint8_t b565 = (rgb565 & 0b0000000000011111) >> 0;
 
-                rgba8888ChannelData[j + 0] = ((r565 * 527) + 23) >> 6;
-                rgba8888ChannelData[j + 1] = ((g565 * 259) + 33) >> 6;
-                rgba8888ChannelData[j + 2] = ((b565 * 527) + 23) >> 6;
-                rgba8888ChannelData[j + 3] = 255;
+                dataToRender[j + 0] = ((r565 * 527) + 23) >> 6;
+                dataToRender[j + 1] = ((g565 * 259) + 33) >> 6;
+                dataToRender[j + 2] = ((b565 * 527) + 23) >> 6;
+                dataToRender[j + 3] = 255;
             }
         }
-
-        sendDisplayDataToSimulator(rgba8888ChannelData, renderArea->x1, renderArea->y1, width, height);
     #endif
 
     lv_disp_flush_ready(displayDriver);
@@ -250,7 +252,12 @@ void display::setTouchData(bool isDown, unsigned int x, unsigned int y) {
 }
 
 #ifdef GOSN_SIMULATOR
+    void render() {
+        sendDisplayDataToSimulator(dataToRender, 0, 0, GOSN_SCREEN_WIDTH, GOSN_SCREEN_HEIGHT);
+    }
+
     EMSCRIPTEN_BINDINGS(my_module) {
         emscripten::function("display_setTouchData", &display::setTouchData);
+        emscripten::function("display_render", render);
     }
 #endif

@@ -17,10 +17,14 @@ nano.render(screen);
 screen.print();
 
 var containerChild = new nano.Element("Paragraph");
+var longContainerChild = new nano.Element("Paragraph");
+var anotherLongContainerChild = new nano.Element("Paragraph");
 
 containerChild.setText("Hello, world!");
+longContainerChild.setText("This is a test of the Astronaut Nano framework within LiveG OS Nano.");
+anotherLongContainerChild.setText("As you can see, it works very similarly to Adapt UI's Astronaut, but it's running on a small device!");
 
-container.add(containerChild);
+container.add(containerChild, longContainerChild, anotherLongContainerChild);
 
 screen.print();
 
