@@ -149,3 +149,178 @@ nano.render = function() {
         arguments[i]._register();
     }
 };
+
+var astronaut = {};
+
+astronaut.components = {};
+astronaut.unpacked = false;
+
+astronaut.unpack = function() {
+    Object.keys(astronaut.components).forEach(function(name) {
+        globalThis[name] = astronaut.components[name];
+    });
+
+    astronaut.unpacked = true;
+};
+
+astronaut.component = function(options, init) {
+    var _options = options;
+
+    if (typeof(options) == "string") {
+        _options = {name: options};
+    }
+
+    var newComponent = function() {
+        var args = [...arguments];
+        var props = {};
+        var inter = {};
+        var children = [];
+        var isSplittingChildren = true;
+
+        function create() {
+            var createdComponent = init(props, children, inter);
+
+            createdComponent.inter = inter;
+
+            return createdComponent;
+        }
+
+        if (args.length > 0) {
+            if (Array.isArray(args[0])) {
+                isSplittingChildren = false;
+            } else if (args[0] instanceof nano.Element) {
+                children = [];
+
+                args.forEach(function(arg) {
+                    if (Array.isArray(arg)) {
+                        children.push(...arg);
+
+                        return;
+                    }
+
+                    children.push(arg);
+                });
+
+                isSplittingChildren = false;
+            } else if (typeof(args[0]) == "object") {
+                props = args[0];
+            } else {
+                props.args = args;
+
+                if (_options.positionals) {
+                    args.forEach(function(arg, i) {
+                        props[_options.positionals[i]] = arg;
+                    });
+                }
+            }
+        } else {
+            props = _options.default || [];
+        }
+
+        if (isSplittingChildren) {
+            return function() {
+                children = [];
+
+                [...arguments].forEach(function(arg) {
+                    if (Array.isArray(arg)) {
+                        children.push(...arg);
+
+                        return;
+                    }
+
+                    children.push(arg);
+                });
+
+                for (var i = 0; i < children.length; i++) {
+                    if (typeof(children[i]) != "object") {
+                        children[i] = String(children[i]);
+                    }
+                }
+
+                return create();
+            };
+        }
+
+        return create();
+    };
+
+    if (!_options.isPrivate) {
+        astronaut.components[_options.name] = newComponent;
+
+        if (astronaut.unpacked) {
+            globalThis[_options.name] = newComponent;
+        }
+    }
+
+    return newComponent;
+};
+
+astronaut.render = function(component) {
+    nano.render(component);
+};
+
+function elementBase(name, options) {
+    var element = new nano.Element(name);
+
+    return element;
+}
+
+function containerElement(name, options) {
+    return function() {
+        var element = elementBase(name, options);
+
+        [...arguments].forEach(function processArg(arg) {
+            if (Array.isArray(arg)) {
+                arg.forEach(function(subArg) {
+                    processArg(subArg);
+                });
+
+                return;
+            }
+
+            if (typeof(arg) == "string") {
+                var text = new nano.Element("Paragraph");
+
+                text.setText(arg);
+
+                element.add(text);
+
+                return;
+            }
+
+            element.add(arg);
+        });
+
+        return element;
+    };
+}
+
+function textualElement(name, options) {
+    return function() {
+        var element = elementBase(name, options);
+
+        element.setText([...arguments].map(function(arg) {
+            return String(arg);
+        }).join(""));
+
+        return element;
+    };
+}
+
+astronaut.component({name: "Screen", positionals: ["showing"]}, function(props, children) {
+    var screen = containerElement("Screen", props) (...children);
+
+    if (props.showing) {
+        screen.screenJump();
+    }
+
+    return screen;
+});
+
+astronaut.component("Container", function(props, children) {
+    return containerElement("Container", props) (...children);
+});
+
+astronaut.component("Paragraph", function(props, children) {
+    return textualElement("Paragraph", props) (...children);
+});
