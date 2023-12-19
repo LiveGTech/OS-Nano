@@ -30,4 +30,4 @@ Then start a web server to host the simulator:
 python3 -m http.server
 ```
 
-You can then visit https://localhost:8000/simulator.html to run the simulator.
+You can then visit https://localhost:8000/simulator to run the simulator.
