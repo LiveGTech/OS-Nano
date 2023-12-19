@@ -16,6 +16,9 @@
 
 namespace api {
     duk_ret_t print(duk_context* ctx);
+
+    duk_ret_t timing_getCurrentTime(duk_context* ctx);
+
     duk_ret_t addElement(duk_context* ctx);
     duk_ret_t setElementProp(duk_context* ctx);
 }

@@ -16,6 +16,7 @@
 
 #include "datatypes.h"
 #include "proc.h"
+#include "timing.h"
 
 namespace app {
     enum ElementType {
@@ -41,6 +42,7 @@ namespace app {
         char* scriptCodeCharArray;
         duk_context* duktapeContextPtr;
         bool setupCompleted;
+        timing::Timestamp startTimestamp;
         dataTypes::List<Element> ownedElements;
     };
 

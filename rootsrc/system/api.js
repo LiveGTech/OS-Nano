@@ -20,6 +20,59 @@ const _nano_elementProps = {
     TEXT: 2
 };
 
+var _currentTimestamp = 0;
+var _timers = [];
+
+Date = class {
+    static now() {
+        return Math.floor(_nano_timing_getCurrentTime());
+    }
+};
+
+function _nano_nextTick(timestamp) {
+    _currentTimestamp = timestamp;
+
+    _timers.forEach(function(timer, id) {
+        if (timer == null) {
+            return;
+        }
+
+        if (timestamp > timer.nextDue) {
+            timer.callback();
+
+            if (timer.indefinite) {
+                timer.nextDue = timestamp + timer.duration;
+            } else {
+                _timers[id] = null;
+            }
+        }
+    });
+}
+
+function setTimeout(callback, duration) {
+    duration = duration || 0;
+
+    _timers.push({callback: callback, duration: duration, nextDue: _currentTimestamp + duration, indefinite: false});
+
+    return _timers.length - 1;
+}
+
+function setInterval(callback, duration) {
+    duration = duration || 0;
+
+    _timers.push({callback: callback, duration: duration, nextDue: _currentTimestamp + duration, indefinite: true});
+
+    return _timers.length - 1;
+}
+
+function clearTimeout(id) {
+    _timers[id] = null;
+}
+
+function clearInterval(id) {
+    _timers[id] = null;
+}
+
 var nano = {};
 
 nano.Element = class {

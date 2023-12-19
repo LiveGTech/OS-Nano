@@ -232,7 +232,7 @@ bool display::init() {
     return true;
 }
 
-void display::update(unsigned int millisecondsPassed) {
+void display::update(timing::Duration millisecondsPassed) {
     #ifndef GOSN_SIMULATOR
         if (touch.available()) {
             touchIsDown = touch.data.event != 1;

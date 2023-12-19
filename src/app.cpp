@@ -61,7 +61,10 @@ void processTask(proc::Process* processPtr) {
         state->setupCompleted = true;
     }
 
-    processPtr->stopAndDiscard();
+    duk_get_global_string(ctx, "_nano_nextTick");
+    duk_push_number(ctx, timing::getCurrentTime() - state->startTimestamp);
+    duk_call(ctx, 1);
+    duk_pop(ctx);
 }
 
 void processCleanupHandler(proc::Process* processPtr) {
@@ -118,10 +121,14 @@ proc::Process* app::launch(String id) {
     processTaskState->scriptCodeCharArray = file->readCharArray();
     processTaskState->duktapeContextPtr = ctx;
     processTaskState->setupCompleted = false;
+    processTaskState->startTimestamp = timing::getCurrentTime();
     processTaskState->ownedElements = dataTypes::List<app::Element>();
 
     duk_push_c_function(ctx, api::print, DUK_VARARGS);
     duk_put_global_string(ctx, "print");
+
+    duk_push_c_function(ctx, api::timing_getCurrentTime, 0);
+    duk_put_global_string(ctx, "_nano_timing_getCurrentTime");
 
     duk_push_c_function(ctx, api::addElement, 2);
     duk_put_global_string(ctx, "_nano_addElement");

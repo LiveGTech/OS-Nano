@@ -13,6 +13,7 @@
 
 #include "api.h"
 #include "app.h"
+#include "timing.h"
 
 app::Element* getElement(duk_context* ctx, Count argIndex) {
     auto state = app::getStateFromDuktapeContext(ctx);
@@ -38,6 +39,12 @@ duk_ret_t api::print(duk_context* ctx) {
     Serial.println(duk_safe_to_string(ctx, -1));
 
     return 0;
+}
+
+duk_ret_t api::timing_getCurrentTime(duk_context* ctx) {
+    duk_push_number(ctx, timing::getCurrentTime());
+
+    return 1;
 }
 
 duk_ret_t api::addElement(duk_context* ctx) {

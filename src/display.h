@@ -18,6 +18,7 @@
 #endif
 
 #include "config.h"
+#include "timing.h"
 
 namespace display {
     extern lv_font_t* FONT_MAIN_20;
@@ -29,7 +30,7 @@ namespace display {
     extern unsigned int touchY;
 
     bool init();
-    void update(unsigned int millisecondsPassed);
+    void update(timing::Duration millisecondsPassed);
 
     void setTouchData(bool isDown, unsigned int x, unsigned int y);
 }

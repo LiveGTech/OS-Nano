@@ -18,6 +18,7 @@
 
 #include "config.h"
 #include "datatypes.h"
+#include "timing.h"
 #include "display.h"
 #include "proc.h"
 #include "app.h"
@@ -30,7 +31,7 @@
 
 static int i = 0;
 
-double lastTimestamp = 0;
+timing::Timestamp lastTimestamp = 0;
 
 static lv_obj_t* label;
 
@@ -221,13 +222,8 @@ void setup() {
 void loop() {
     proc::cycleScheduler();
 
-    #ifndef GOSN_SIMULATOR
-        double currentTimestamp = millis();
-    #else
-        double currentTimestamp = emscripten_get_now();
-    #endif
-
-    double timeDelta = currentTimestamp - lastTimestamp;
+    timing::Timestamp currentTimestamp = timing::getCurrentTime();
+    timing::Timestamp timeDelta = currentTimestamp - lastTimestamp;
 
     lastTimestamp = currentTimestamp;
 
