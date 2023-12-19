@@ -18,6 +18,7 @@
 #include "api.h"
 
 char* apiCodeCharArray;
+auto eventsToProcess = dataTypes::List<app::EventData>();
 
 proc::Process* app::getProcessFromDuktapeContext(duk_context* ctx) {
     duk_memory_functions functions;
@@ -65,6 +66,20 @@ void processTask(proc::Process* processPtr) {
     duk_push_number(ctx, timing::getCurrentTime() - state->startTimestamp);
     duk_call(ctx, 1);
     duk_pop(ctx);
+
+    eventsToProcess.start();
+
+    while (auto event = eventsToProcess.next()) {
+        duk_get_global_string(ctx, "_nano_processEvent");
+        duk_push_int(ctx, event->type);
+        duk_push_int(ctx, event->targetId);
+        duk_call(ctx, 2);
+        duk_pop(ctx);
+
+        discard<app::EventData>(event);
+    }
+
+    eventsToProcess.empty();
 }
 
 void processCleanupHandler(proc::Process* processPtr) {
@@ -133,10 +148,36 @@ proc::Process* app::launch(String id) {
     duk_push_c_function(ctx, api::addElement, 2);
     duk_put_global_string(ctx, "_nano_addElement");
 
+    duk_push_c_function(ctx, api::removeElement, 2);
+    duk_put_global_string(ctx, "_nano_removeElement");
+
     duk_push_c_function(ctx, api::setElementProp, 3);
     duk_put_global_string(ctx, "_nano_setElementProp");
+
+    duk_push_c_function(ctx, api::listenForEvents, 1);
+    duk_put_global_string(ctx, "_nano_listenForEvents");
 
     process->setCleanupHandler(processCleanupHandler);
 
     return process;
+}
+
+void app::dispatchEvent(app::EventData eventData) {
+    eventsToProcess.push(store<app::EventData>(eventData));
+}
+
+void app::dispatchEventHandler(lv_event_t* event) {
+    int elementId = *(static_cast<int*>(lv_event_get_user_data(event)));
+
+    switch (lv_event_get_code(event)) {
+        case LV_EVENT_CLICKED:
+            dispatchEvent((EventData) {
+                .type = EventType::EVENT_TYPE_CLICK,
+                .targetId = elementId
+            });
+            break;
+
+        default:
+            break;
+    }
 }

@@ -12,6 +12,7 @@
 #include <lvgl.h>
 
 #include "api.h"
+#include "datatypes.h"
 #include "app.h"
 #include "timing.h"
 
@@ -63,6 +64,7 @@ duk_ret_t api::addElement(duk_context* ctx) {
     auto element = new app::Element();
 
     element->type = (app::ElementType)type;
+    element->listeningForEvents = false;
 
     switch (type) {
         case app::ElementType::TYPE_SCREEN:
@@ -83,10 +85,20 @@ duk_ret_t api::addElement(duk_context* ctx) {
 
             break;
 
+        case app::ElementType::TYPE_TEXT:
+            element->object = lv_label_create(parentElement->object);
+
+            break;
+
         case app::ElementType::TYPE_PARAGRAPH:
             element->object = lv_label_create(parentElement->object);
 
             lv_obj_set_width(element->object, lv_pct(100));
+
+            break;
+
+        case app::ElementType::TYPE_BUTTON:
+            element->object = lv_btn_create(parentElement->object);
 
             break;
 
@@ -97,6 +109,22 @@ duk_ret_t api::addElement(duk_context* ctx) {
     duk_push_int(ctx, state->ownedElements.push(element) - 1);
 
     return 1;
+}
+
+duk_ret_t api::removeElement(duk_context* ctx) {
+    auto state = app::getStateFromDuktapeContext(ctx);
+    auto element = getElement(ctx, 0);
+    int elementId = duk_get_int(ctx, 0);
+
+    if (!element) {
+        return DUK_RET_REFERENCE_ERROR;
+    }
+
+    lv_obj_del(element->object);
+
+    state->ownedElements.set(elementId, nullptr);
+
+    return 0;
 }
 
 duk_ret_t api::setElementProp(duk_context* ctx) {
@@ -121,7 +149,10 @@ duk_ret_t api::setElementProp(duk_context* ctx) {
             return DUK_RET_TYPE_ERROR;
 
         case app::ElementProperty::PROP_TEXT:
-            if (element->type == app::ElementType::TYPE_PARAGRAPH) {
+            if (
+                element->type == app::ElementType::TYPE_TEXT ||
+                element->type == app::ElementType::TYPE_PARAGRAPH
+            ) {
                 lv_label_set_text(element->object, duk_safe_to_string(ctx, 2));
 
                 return 0;
@@ -131,4 +162,21 @@ duk_ret_t api::setElementProp(duk_context* ctx) {
     }
 
     return DUK_RET_TYPE_ERROR;
+}
+
+duk_ret_t api::listenForEvents(duk_context* ctx) {
+    auto element = getElement(ctx, 0);
+    auto elementId = duk_get_int(ctx, 0);
+
+    if (!element) {
+        return DUK_RET_REFERENCE_ERROR;
+    }
+
+    if (element->listeningForEvents) {
+        return 0;
+    }
+
+    lv_obj_add_event_cb(element->object, app::dispatchEventHandler, LV_EVENT_ALL, store<int>(elementId));
+
+    return 0;
 }

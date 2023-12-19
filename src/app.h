@@ -23,7 +23,9 @@ namespace app {
         TYPE_NONE = 0,
         TYPE_SCREEN = 1,
         TYPE_CONTAINER = 2,
-        TYPE_PARAGRAPH = 3
+        TYPE_TEXT = 3,
+        TYPE_PARAGRAPH = 4,
+        TYPE_BUTTON = 5
     };
 
     enum ElementProperty {
@@ -32,9 +34,20 @@ namespace app {
         PROP_TEXT = 2
     };
 
+    enum EventType {
+        EVENT_TYPE_NONE = 0,
+        EVENT_TYPE_CLICK = 1
+    };
+
     struct Element {
         ElementType type;
         lv_obj_t* object;
+        bool listeningForEvents;
+    };
+
+    struct EventData {
+        EventType type;
+        int targetId;
     };
 
     struct ProcessTaskState {
@@ -48,9 +61,13 @@ namespace app {
 
     proc::Process* getProcessFromDuktapeContext(duk_context* ctx);
     ProcessTaskState* getStateFromDuktapeContext(duk_context* ctx);
+
     bool init();
     proc::Process* launch(String id);
     void crash();
+
+    void dispatchEvent(EventData eventData);
+    void dispatchEventHandler(lv_event_t* event);
 }
 
 #endif

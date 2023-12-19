@@ -11,7 +11,19 @@ const _NANO_ELEMENT_TYPE_IDS = {
     "": 0,
     "Screen": 1,
     "Container": 2,
-    "Paragraph": 3
+    "Text": 3,
+    "Paragraph": 4,
+    "Button": 5
+};
+
+const _NANO_EVENT_TYPE_IDS = {
+    "": 0,
+    "click": 1
+};
+
+const _NANO_TEXTUAL_ELEMENTS = {
+    "Text": true,
+    "Paragraph": true
 };
 
 const _nano_elementProps = {
@@ -22,10 +34,17 @@ const _nano_elementProps = {
 
 var _currentTimestamp = 0;
 var _timers = [];
+var _elementsById = {};
 
-Date = class {
+class Date {
     static now() {
         return Math.floor(_nano_timing_getCurrentTime());
+    }
+};
+
+class Event {
+    constructor(type) {
+        this.type = type;
     }
 };
 
@@ -47,6 +66,26 @@ function _nano_nextTick(timestamp) {
             }
         }
     });
+}
+
+function _nano_processEvent(eventType, targetId) {
+    var eventTypeName = null;
+
+    Object.keys(_NANO_EVENT_TYPE_IDS).forEach(function(type) {
+        if (_NANO_EVENT_TYPE_IDS[type] == eventType) {
+            eventTypeName = type;
+        }
+    });
+
+    if (eventTypeName == null) {
+        return;
+    }
+
+    var event = new Event(eventTypeName);
+
+    event.target = _elementsById[targetId];
+
+    event.target._emit(event);
 }
 
 function setTimeout(callback, duration) {
@@ -83,6 +122,8 @@ nano.Element = class {
         this._children = [];
         this._id = null;
         this._propsToSet = {};
+        this._shouldListenForEvents = false;
+        this._eventListeners = [];
     }
 
     add() {
@@ -97,6 +138,28 @@ nano.Element = class {
         }
 
         return this;
+    }
+
+    remove() {
+        this.clear();
+
+        for (var i = 0; i < this._parent._children.length; i++) {
+            if (this._parent._children[i] == this) {
+                this._parent._children.splice(i, 1);
+
+                break;
+            }
+        }
+
+        _nano_removeElement(this._id);
+
+        this._id = null;
+    }
+
+    clear() {
+        while (this._children.length > 0) {
+            this._children[0].remove();
+        }
     }
 
     _print(indent, lastChild) {
@@ -131,6 +194,8 @@ nano.Element = class {
 
         this._id = _nano_addElement(this._parent ? this._parent._id : null, _NANO_ELEMENT_TYPE_IDS[this._type]);
 
+        _elementsById[this._id] = this;
+
         var propIdsToSet = Object.keys(this._propsToSet);
 
         for (var i = 0; i < propIdsToSet.length; i++) {
@@ -140,6 +205,10 @@ nano.Element = class {
         }
 
         this._propsToSet = {};
+
+        if (this._shouldListenForEvents) {
+            _nano_listenForEvents(this._id);
+        }
 
         for (var i = 0; i < this._children.length; i++) {
             this._children[i]._register();
@@ -156,8 +225,32 @@ nano.Element = class {
         _nano_setElementProp(this._id, propId, propValue);
     }
 
+    on(eventType, callback) {
+        this._shouldListenForEvents = true;
+
+        if (this._id != null) {
+            _nano_listenForEvents(this._id);
+        }
+
+        this._eventListeners.push({type: eventType, callback: callback});
+    }
+
+    _emit(event) {
+        this._eventListeners.forEach(function(listener) {
+            if (listener.type == event.type) {
+                listener.callback(event);
+            }
+        });
+    }
+
     setText(text) {
-        this._setProp(_nano_elementProps.TEXT, text);
+        if (_NANO_TEXTUAL_ELEMENTS[this._type]) {
+            this._setProp(_nano_elementProps.TEXT, text);
+        } else {
+            this.clear();
+
+            this.add(Text(text));
+        }
     }
 
     screenJump() {
@@ -332,11 +425,7 @@ function containerElement(name, options) {
             }
 
             if (typeof(arg) == "string") {
-                var text = new nano.Element("Paragraph");
-
-                text.setText(arg);
-
-                element.add(text);
+                element.add(astronaut.components.Text(arg));
 
                 return;
             }
@@ -360,6 +449,14 @@ function textualElement(name, options) {
     };
 }
 
+astronaut.components.Text = function(text) {
+    var element = new nano.Element("Text");
+
+    element.setText(text);
+
+    return element;
+};
+
 astronaut.component({name: "Screen", positionals: ["showing"]}, function(props, children) {
     var screen = containerElement("Screen", props) (...children);
 
@@ -376,4 +473,8 @@ astronaut.component("Container", function(props, children) {
 
 astronaut.component("Paragraph", function(props, children) {
     return textualElement("Paragraph", props) (...children);
+});
+
+astronaut.component("Button", function(props, children) {
+    return containerElement("Button", props) (...children);
 });

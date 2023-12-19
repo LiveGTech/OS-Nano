@@ -20,7 +20,7 @@ template<typename T> T* store(T value) {
 
 template<typename T> T discard(T* itemPtr) {
     auto itemValue = *itemPtr;
-    
+
     free(itemPtr);
 
     return itemValue;
@@ -275,6 +275,16 @@ template<typename T> T* dataTypes::List<T>::remove(Count index) {
     return itemValuePtr;
 }
 
+template<typename T> void dataTypes::List<T>::set(Count index, T* valuePtr) {
+    auto item = getItemAtIndex(index);
+
+    if (!item) {
+        return;
+    }
+
+    item->valuePtr = valuePtr;
+}
+
 template<typename T> int dataTypes::List<T>::indexOf(T* valuePtr) {
     auto currentItemPtr = _firstItemPtr;
     int index = 0;
@@ -354,11 +364,16 @@ template<typename T> dataTypes::List<T> dataTypes::List<T>::concat(dataTypes::Li
 }
 
 template class dataTypes::StoredValue<int>;
+template class dataTypes::StoredValue<app::EventData>;
 
 template class dataTypes::List<proc::Process>;
 template class dataTypes::List<int>;
 template class dataTypes::List<fs::FileHandle>;
 template class dataTypes::List<app::Element>;
+template class dataTypes::List<app::EventData>;
 
 template int* store<int>(int value);
 template int discard<int>(int* itemPtr);
+
+template app::EventData* store<app::EventData>(app::EventData value);
+template app::EventData discard<app::EventData>(app::EventData* itemPtr);

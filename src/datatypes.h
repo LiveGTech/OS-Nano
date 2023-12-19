@@ -50,6 +50,7 @@ namespace dataTypes {
             T* shift();
             Count insert(Count index, T* valuePtr);
             T* remove(Count index);
+            void set(Count index, T* valuePtr);
             int indexOf(T* valuePtr);
             void forEach(IterationCallback iterationCallback);
             List<T> map(MappingFunction mappingFunction);

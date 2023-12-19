@@ -6,7 +6,25 @@ astronaut.unpack();
 
 var counter = Paragraph() ();
 var timestamp = Paragraph() ();
+var itemsContainer = Container() ();
+var addItemButton = Button() ("Add item");
 var i = 0;
+
+var Item = astronaut.component("Item", function(props, children) {
+    var message = Paragraph() (props.message);
+    var button = Button() ("Remove");
+
+    var container = Container (
+        message,
+        button
+    );
+
+    button.on("click", function() {
+        container.remove();
+    });
+
+    return container;
+});
 
 var screen = Screen(true) (
     Container (
@@ -16,8 +34,14 @@ var screen = Screen(true) (
         timestamp
     ),
     Paragraph() ("As you can see, it works very similarly to Adapt UI's Astronaut, but it's running on a small device!"),
-    Paragraph() ("How cool is that?!")
+    Paragraph() ("How cool is that?!"),
+    itemsContainer,
+    addItemButton
 );
+
+addItemButton.on("click", function() {
+    itemsContainer.add(Item({message: "You added me at time " + Date.now() + "!"}) ());
+});
 
 astronaut.render(screen);
 
