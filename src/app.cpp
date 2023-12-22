@@ -138,6 +138,7 @@ proc::Process* app::launch(String id) {
     processTaskState->setupCompleted = false;
     processTaskState->startTimestamp = timing::getCurrentTime();
     processTaskState->ownedElements = dataTypes::List<app::Element>();
+    processTaskState->elementStyleRules = dataTypes::List<app::ElementStyleRule>();
 
     duk_push_c_function(ctx, api::print, DUK_VARARGS);
     duk_put_global_string(ctx, "print");
@@ -153,6 +154,9 @@ proc::Process* app::launch(String id) {
 
     duk_push_c_function(ctx, api::setElementProp, 3);
     duk_put_global_string(ctx, "_nano_setElementProp");
+
+    duk_push_c_function(ctx, api::setElementStyleRule, 4);
+    duk_put_global_string(ctx, "_nano_setElementStyleRule");
 
     duk_push_c_function(ctx, api::listenForEvents, 1);
     duk_put_global_string(ctx, "_nano_listenForEvents");
@@ -180,4 +184,18 @@ void app::dispatchEventHandler(lv_event_t* event) {
         default:
             break;
     }
+}
+
+void app::applyStyleRuleToElement(app::ElementStyleRule* styleRule, app::Element* element) {
+    if (element->type != styleRule->targetType) {
+        return;
+    }
+
+    unsigned int selector = 0;
+
+    if (styleRule->targetState == ElementState::STATE_PRESS) {
+        selector |= LV_STATE_PRESSED;
+    }
+
+    lv_obj_add_style(element->object, &(styleRule->style), selector);
 }

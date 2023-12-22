@@ -32,6 +32,17 @@ const _nano_elementProps = {
     TEXT: 2
 };
 
+const _nano_elementStates = {
+    NONE: 0,
+    PRESS: 1
+};
+
+const _nano_styleProps = {
+    NONE: 0,
+    BACKGROUND: 1,
+    FOREGROUND: 2
+};
+
 var _currentTimestamp = 0;
 var _timers = [];
 var _elementsById = {};
@@ -296,6 +307,117 @@ nano.render = function() {
     }
 };
 
+
+
+nano.theme = {};
+
+// @source https://stackoverflow.com/a/9493060
+
+nano.theme.hueToRgb = function(p, q, t) {
+    if (t < 0) {
+        t++;
+    }
+
+    if (t > 1) {
+        t--;
+    }
+
+    if (t < (1 / 6)) {
+        return p + ((q - p) * 6 * t);
+    }
+
+    if (t < (1 / 2)) {
+        return q;
+    }
+
+    if (t < (2 / 3)) {
+        return p + ((q - p) * ((2 / 3) - t) * 6);
+    }
+
+    return p;
+};
+
+nano.theme.hsl = function(h, s, l) {
+    var r, g, b;
+
+    h /= 360;
+    s = Math.max(Math.min(s, 1), 0);
+    l = Math.max(Math.min(l, 1), 0);
+
+    if (s == 0) {
+        r = g = b = l; // Achromatic
+    } else {
+        var q = l < 0.5 ? (l * (1 + s)) : (l + s - (l * s));
+        var p = (2 * l) - q;
+
+        r = nano.theme.hueToRgb(p, q, h + (1 / 3));
+        g = nano.theme.hueToRgb(p, q, h);
+        b = nano.theme.hueToRgb(p, q, h - (1 / 3));
+    }
+
+    return (
+        (Math.round(r * 255) << 16) |
+        (Math.round(g * 255) << 8) |
+        Math.round(b * 255)
+    );
+};
+
+function _p() {
+    return nano.theme.properties;
+}
+
+nano.theme.properties = {
+    primaryHue: 220,
+    primarySaturation: 0.9,
+    primaryLightness: 0.65,
+    secondaryHue: () => _p().primaryHue(),
+    secondarySaturation: 0.85,
+    secondaryLightness: 0.8,
+    dangerousHue: 0,
+    dangerousSaturation: 0.65,
+    dangerousLightness: 0.65,
+    primaryBackground: 0xFFFFFF,
+    primaryText: 0x000000,
+    primaryUI: () => nano.theme.hsl(_p().primaryHue, _p().primarySaturation, _p().primaryLightness),
+    primartUIText: 0xFFFFFF,
+    primaryUIPress: () => nano.theme.hsl(_p().primaryHue, _p().primarySaturation - 0.1, _p().primaryLightness + 0.05),
+    secondaryBackground: 0xE5E5E5,
+    secondaryText: 0x000000,
+    secondaryUI: () => nano.theme.hsl(_p().secondaryHue, _p().secondarySaturation, _p().secondaryLightness),
+    secondaryUIText: 0xFFFFFF,
+    secondaryUIPress: () => nano.theme.hsl(_p().secondaryHue, _p().secondarySaturation - 0.1, _p().secondaryLightness + 0.05),
+};
+
+nano.theme.computeValue = function(value) {
+    if (value instanceof Function) {
+        return value();
+    }
+
+    return value;
+};
+
+nano.theme.recompute = function() {
+    _nano_setElementStyleRule(
+        _NANO_ELEMENT_TYPE_IDS["Button"],
+        _nano_elementStates.NONE,
+        _nano_styleProps.BACKGROUND,
+        nano.theme.computeValue(_p().primaryUI)
+    );
+
+    _nano_setElementStyleRule(
+        _NANO_ELEMENT_TYPE_IDS["Button"],
+        _nano_elementStates.PRESS,
+        _nano_styleProps.BACKGROUND,
+        nano.theme.computeValue(_p().primaryUIPress)
+    );
+};
+
+nano.theme.setProperty = function(property, value) {
+    nano.theme.properties[property] = value;
+
+    nano.theme.recompute();
+};
+
 var astronaut = {};
 
 astronaut.components = {};
@@ -478,3 +600,5 @@ astronaut.component("Paragraph", function(props, children) {
 astronaut.component("Button", function(props, children) {
     return containerElement("Button", props) (...children);
 });
+
+nano.theme.recompute();

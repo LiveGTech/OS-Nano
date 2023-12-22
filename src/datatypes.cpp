@@ -371,9 +371,13 @@ template class dataTypes::List<int>;
 template class dataTypes::List<fs::FileHandle>;
 template class dataTypes::List<app::Element>;
 template class dataTypes::List<app::EventData>;
+template class dataTypes::List<app::ElementStyleRule>;
 
 template int* store<int>(int value);
 template int discard<int>(int* itemPtr);
 
 template app::EventData* store<app::EventData>(app::EventData value);
 template app::EventData discard<app::EventData>(app::EventData* itemPtr);
+
+template app::ElementStyleRule* store<app::ElementStyleRule>(app::ElementStyleRule value);
+template app::ElementStyleRule discard<app::ElementStyleRule>(app::ElementStyleRule* itemPtr);

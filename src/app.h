@@ -34,9 +34,20 @@ namespace app {
         PROP_TEXT = 2
     };
 
+    enum ElementState {
+        STATE_NONE = 0,
+        STATE_PRESS = 1
+    };
+
     enum EventType {
         EVENT_TYPE_NONE = 0,
         EVENT_TYPE_CLICK = 1
+    };
+
+    enum StyleProperty {
+        STYLE_NONE = 0,
+        STYLE_BACKGROUND = 1,
+        STYLE_FOREGROUND = 2
     };
 
     struct Element {
@@ -50,6 +61,12 @@ namespace app {
         int targetId;
     };
 
+    struct ElementStyleRule {
+        ElementType targetType;
+        ElementState targetState;
+        lv_style_t style;
+    };
+
     struct ProcessTaskState {
         String id;
         char* scriptCodeCharArray;
@@ -57,6 +74,7 @@ namespace app {
         bool setupCompleted;
         timing::Timestamp startTimestamp;
         dataTypes::List<Element> ownedElements;
+        dataTypes::List<ElementStyleRule> elementStyleRules;
     };
 
     proc::Process* getProcessFromDuktapeContext(duk_context* ctx);
@@ -64,10 +82,11 @@ namespace app {
 
     bool init();
     proc::Process* launch(String id);
-    void crash();
 
     void dispatchEvent(EventData eventData);
     void dispatchEventHandler(lv_event_t* event);
+
+    void applyStyleRuleToElement(ElementStyleRule* styleRule, Element* element);
 }
 
 #endif

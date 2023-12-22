@@ -106,6 +106,12 @@ duk_ret_t api::addElement(duk_context* ctx) {
             return DUK_RET_TYPE_ERROR;
     }
 
+    state->elementStyleRules.start();
+
+    while (auto styleRule = state->elementStyleRules.next()) {
+        app::applyStyleRuleToElement(styleRule, element);
+    }
+
     duk_push_int(ctx, state->ownedElements.push(element) - 1);
 
     return 1;
@@ -162,6 +168,70 @@ duk_ret_t api::setElementProp(duk_context* ctx) {
     }
 
     return DUK_RET_TYPE_ERROR;
+}
+
+duk_ret_t api::setElementStyleRule(duk_context* ctx) {
+    auto state = app::getStateFromDuktapeContext(ctx);
+    auto targetType = static_cast<app::ElementType>(duk_get_int(ctx, 0));
+    auto targetState = static_cast<app::ElementState>(duk_get_int(ctx, 1));
+    auto styleProperty = duk_get_int(ctx, 2);
+
+    app::ElementStyleRule* styleRule = nullptr;
+
+    state->elementStyleRules.start();
+
+    while (auto existingStyleRule = state->elementStyleRules.next()) {
+        if (existingStyleRule->targetType != targetType) {
+            continue;
+        }
+
+        if (existingStyleRule->targetState != targetState) {
+            continue;
+        }
+
+        styleRule = existingStyleRule;
+
+        break;
+    }
+
+    if (!styleRule) {
+        app::ElementStyleRule createdStyleRule;
+
+        createdStyleRule.targetType = targetType;
+        createdStyleRule.targetState = targetState;
+
+        lv_style_init(&(createdStyleRule.style));
+
+        styleRule = store<app::ElementStyleRule>(createdStyleRule);
+
+        state->elementStyleRules.push(styleRule);
+
+        state->ownedElements.start();
+
+        while (auto element = state->ownedElements.next()) {
+            app::applyStyleRuleToElement(styleRule, element);
+        }
+    }
+
+    auto stylePtr = &(styleRule->style);
+
+    switch (styleProperty) {
+        case app::StyleProperty::STYLE_BACKGROUND:
+            lv_style_set_bg_color(stylePtr, lv_color_hex(duk_get_int(ctx, 3)));
+            lv_style_set_bg_opa(stylePtr, LV_OPA_100);
+            break;
+
+        case app::StyleProperty::STYLE_FOREGROUND:
+            lv_style_set_text_color(stylePtr, lv_color_hex(duk_get_int(ctx, 3)));
+            break;
+
+        default:
+            return DUK_RET_TYPE_ERROR;
+    }
+
+    lv_obj_invalidate(lv_scr_act());
+
+    return 0;
 }
 
 duk_ret_t api::listenForEvents(duk_context* ctx) {
