@@ -8,6 +8,8 @@ var counter = Paragraph() ();
 var timestamp = Paragraph() ();
 var itemsContainer = Container() ();
 var addItemButton = Button() ("Add item");
+var launchAnotherAppButton = Button() ("Launch another app");
+var exitButton = Button() ("Exit");
 var i = 0;
 
 var Item = astronaut.component("Item", function(props, children) {
@@ -35,9 +37,19 @@ var screen = Screen(true) (
     ),
     Paragraph() ("As you can see, it works very similarly to Adapt UI's Astronaut, but it's running on a small device!"),
     Paragraph() ("How cool is that?!"),
+    launchAnotherAppButton,
+    exitButton,
     itemsContainer,
     addItemButton
 );
+
+launchAnotherAppButton.on("click", function() {
+    nano.launch("hello2");
+});
+
+exitButton.on("click", function() {
+    nano.back();
+});
 
 addItemButton.on("click", function() {
     itemsContainer.add(Item({message: "You added me at time " + Date.now() + "!"}) ());

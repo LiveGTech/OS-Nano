@@ -363,9 +363,6 @@ template<typename T> dataTypes::List<T> dataTypes::List<T>::concat(dataTypes::Li
     return newList;
 }
 
-template class dataTypes::StoredValue<int>;
-template class dataTypes::StoredValue<app::EventData>;
-
 template class dataTypes::List<proc::Process>;
 template class dataTypes::List<int>;
 template class dataTypes::List<fs::FileHandle>;
@@ -373,8 +370,8 @@ template class dataTypes::List<app::Element>;
 template class dataTypes::List<app::EventData>;
 template class dataTypes::List<app::ElementStyleRule>;
 
-template int* store<int>(int value);
-template int discard<int>(int* itemPtr);
+template app::GlobalElementReference* store<app::GlobalElementReference>(app::GlobalElementReference value);
+template app::GlobalElementReference discard<app::GlobalElementReference>(app::GlobalElementReference* itemPtr);
 
 template app::EventData* store<app::EventData>(app::EventData value);
 template app::EventData discard<app::EventData>(app::EventData* itemPtr);

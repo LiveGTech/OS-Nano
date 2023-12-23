@@ -216,7 +216,7 @@ void setup() {
     Serial.print("Running process count: ");
     Serial.println(proc::getRunningProcessesCount());
 
-    app::launch("hello");
+    app::launch("launcher", true);
 }
 
 void loop() {

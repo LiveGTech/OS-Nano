@@ -56,9 +56,14 @@ namespace app {
         bool listeningForEvents;
     };
 
+    struct GlobalElementReference {
+        proc::Process* processPtr;
+        Count elementId;
+    };
+
     struct EventData {
         EventType type;
-        int targetId;
+        GlobalElementReference target;
     };
 
     struct ElementStyleRule {
@@ -72,8 +77,10 @@ namespace app {
         char* scriptCodeCharArray;
         duk_context* duktapeContextPtr;
         bool setupCompleted;
+        bool wantsToStop;
         timing::Timestamp startTimestamp;
         dataTypes::List<Element> ownedElements;
+        Element* activeScreen;
         dataTypes::List<ElementStyleRule> elementStyleRules;
     };
 
@@ -81,7 +88,12 @@ namespace app {
     ProcessTaskState* getStateFromDuktapeContext(duk_context* ctx);
 
     bool init();
-    proc::Process* launch(String id);
+    proc::Process* launch(String id, bool activate);
+    proc::Process* getRunningProcess(String id);
+    Element* switchToProcess(proc::Process* processPtr, bool switchToActiveScreen);
+    proc::Process* getActiveProcess();
+    Element* goBackToPreviousActiveProcess(bool switchToActiveScreen);
+    proc::Process* launchOrSwitchToProcess(String id, bool activate);
 
     void dispatchEvent(EventData eventData);
     void dispatchEventHandler(lv_event_t* event);

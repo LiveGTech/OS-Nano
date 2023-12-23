@@ -48,6 +48,36 @@ duk_ret_t api::timing_getCurrentTime(duk_context* ctx) {
     return 1;
 }
 
+duk_ret_t api::launch(duk_context* ctx) {
+    auto id = String(duk_safe_to_string(ctx, 0));
+    auto processPtr = duk_get_boolean(ctx, 1) ? app::launchOrSwitchToProcess(id, true) : app::launch(id, true);
+
+    if (!processPtr) {
+        return DUK_RET_REFERENCE_ERROR;
+    }
+
+    return 0;
+}
+
+duk_ret_t api::back(duk_context* ctx) {
+    auto processPtr = app::getProcessFromDuktapeContext(ctx);
+    auto state = (app::ProcessTaskState*)processPtr->taskState;
+
+    if (app::getActiveProcess() != processPtr) {
+        return 0;
+    }
+
+    if (!app::goBackToPreviousActiveProcess(true)) {
+        return 0;
+    }
+
+    if (duk_get_boolean(ctx, 0)) {
+        state->wantsToStop = true;
+    }
+
+    return 0;
+}
+
 duk_ret_t api::addElement(duk_context* ctx) {
     auto state = app::getStateFromDuktapeContext(ctx);
     int type = duk_get_int(ctx, 1);
@@ -134,7 +164,8 @@ duk_ret_t api::removeElement(duk_context* ctx) {
 }
 
 duk_ret_t api::setElementProp(duk_context* ctx) {
-    auto state = app::getStateFromDuktapeContext(ctx);
+    auto processPtr = app::getProcessFromDuktapeContext(ctx);
+    auto state = (app::ProcessTaskState*)processPtr->taskState;
     auto element = getElement(ctx, 0);
     auto property = duk_get_int(ctx, 1);
 
@@ -145,9 +176,17 @@ duk_ret_t api::setElementProp(duk_context* ctx) {
     switch (property) {
         case app::ElementProperty::PROP_SHOWING:
             if (element->type == app::ElementType::TYPE_SCREEN) {
-                if (duk_get_boolean(ctx, 2)) {
-                    lv_scr_load(element->object);
+                if (!duk_get_boolean(ctx, 2)) {
+                    return 0;
                 }
+
+                state->activeScreen = element;
+
+                if (app::getActiveProcess() != processPtr) {
+                    return 0;
+                }
+
+                lv_scr_load(element->object);
 
                 return 0;
             }
@@ -229,14 +268,27 @@ duk_ret_t api::setElementStyleRule(duk_context* ctx) {
             return DUK_RET_TYPE_ERROR;
     }
 
-    lv_obj_invalidate(lv_scr_act());
+    state->ownedElements.start();
+
+    while (auto element = state->ownedElements.next()) {
+        if (element->type != app::ElementType::TYPE_SCREEN) {
+            continue;
+        }
+
+        lv_obj_invalidate(element->object);
+    }
 
     return 0;
 }
 
 duk_ret_t api::listenForEvents(duk_context* ctx) {
+    auto processPtr = app::getProcessFromDuktapeContext(ctx);
     auto element = getElement(ctx, 0);
-    auto elementId = duk_get_int(ctx, 0);
+
+    auto target = (app::GlobalElementReference) {
+        .processPtr = processPtr,
+        .elementId = static_cast<Count>(duk_get_int(ctx, 0))
+    };
 
     if (!element) {
         return DUK_RET_REFERENCE_ERROR;
@@ -246,7 +298,7 @@ duk_ret_t api::listenForEvents(duk_context* ctx) {
         return 0;
     }
 
-    lv_obj_add_event_cb(element->object, app::dispatchEventHandler, LV_EVENT_ALL, store<int>(elementId));
+    lv_obj_add_event_cb(element->object, app::dispatchEventHandler, LV_EVENT_ALL, store<app::GlobalElementReference>(target));
 
     return 0;
 }

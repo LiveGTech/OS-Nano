@@ -229,7 +229,11 @@ void fs::FileHandle::close() {
 
     _isOpen = false;
 
-    openFileHandles.remove(openFileHandles.indexOf(this));
+    auto handleIndex = openFileHandles.indexOf(this);
+
+    if (handleIndex >= 0) {
+        openFileHandles.remove(handleIndex);
+    }
 
     if (_errorOnOpen) {
         Serial.print("fs: Unable to open file at path `");

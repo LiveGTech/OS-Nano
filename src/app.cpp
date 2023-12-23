@@ -19,6 +19,8 @@
 
 char* apiCodeCharArray;
 auto eventsToProcess = dataTypes::List<app::EventData>();
+auto appProcesses = dataTypes::List<proc::Process>();
+auto activeProcessStack = dataTypes::List<proc::Process>();
 
 proc::Process* app::getProcessFromDuktapeContext(duk_context* ctx) {
     duk_memory_functions functions;
@@ -69,17 +71,37 @@ void processTask(proc::Process* processPtr) {
 
     eventsToProcess.start();
 
+    auto processedEvents = dataTypes::List<app::EventData>();
+
     while (auto event = eventsToProcess.next()) {
+        if (event->target.processPtr != processPtr) {
+            continue;
+        }
+
         duk_get_global_string(ctx, "_nano_processEvent");
         duk_push_int(ctx, event->type);
-        duk_push_int(ctx, event->targetId);
+        duk_push_int(ctx, event->target.elementId);
         duk_call(ctx, 2);
         duk_pop(ctx);
+
+        processedEvents.push(event);
+    }
+
+    while (auto event = processedEvents.shift()) {
+        auto eventIndex = eventsToProcess.indexOf(event);
+
+        if (eventIndex >= 0) {
+            eventsToProcess.remove(eventIndex);
+        }
 
         discard<app::EventData>(event);
     }
 
-    eventsToProcess.empty();
+    processedEvents.empty();
+
+    if (state->wantsToStop) {
+        processPtr->stopAndDiscard();
+    }
 }
 
 void processCleanupHandler(proc::Process* processPtr) {
@@ -87,6 +109,26 @@ void processCleanupHandler(proc::Process* processPtr) {
 
     free(state->scriptCodeCharArray);
     duk_destroy_heap(state->duktapeContextPtr);
+
+    while (auto element = state->ownedElements.shift()) {
+        lv_obj_del_async(element->object);
+    }
+
+    while (auto styleRule = state->elementStyleRules.shift()) {
+        lv_style_reset(&(styleRule->style));
+    }
+
+    auto appProcessIndex = appProcesses.indexOf(processPtr);
+
+    if (appProcessIndex >= 0) {
+        appProcesses.remove(appProcessIndex);
+    }
+
+    auto stackIndex = activeProcessStack.indexOf(processPtr);
+
+    if (stackIndex >= 0) {
+        activeProcessStack.remove(stackIndex);
+    }
 }
 
 bool app::init() {
@@ -120,7 +162,7 @@ void fatalHandler(void* udata, const char* msg) {
     while (true) {} // TODO: Terminate process
 }
 
-proc::Process* app::launch(String id) {
+proc::Process* app::launch(String id, bool activate) {
     auto processTaskState = new app::ProcessTaskState();
     auto process = new proc::Process(processTask, processTaskState);
 
@@ -136,15 +178,25 @@ proc::Process* app::launch(String id) {
     processTaskState->scriptCodeCharArray = file->readCharArray();
     processTaskState->duktapeContextPtr = ctx;
     processTaskState->setupCompleted = false;
+    processTaskState->wantsToStop = false;
     processTaskState->startTimestamp = timing::getCurrentTime();
     processTaskState->ownedElements = dataTypes::List<app::Element>();
+    processTaskState->activeScreen = nullptr;
     processTaskState->elementStyleRules = dataTypes::List<app::ElementStyleRule>();
+
+    file->close();
 
     duk_push_c_function(ctx, api::print, DUK_VARARGS);
     duk_put_global_string(ctx, "print");
 
     duk_push_c_function(ctx, api::timing_getCurrentTime, 0);
     duk_put_global_string(ctx, "_nano_timing_getCurrentTime");
+
+    duk_push_c_function(ctx, api::launch, 2);
+    duk_put_global_string(ctx, "_nano_launch");
+
+    duk_push_c_function(ctx, api::back, 1);
+    duk_put_global_string(ctx, "_nano_back");
 
     duk_push_c_function(ctx, api::addElement, 2);
     duk_put_global_string(ctx, "_nano_addElement");
@@ -163,7 +215,79 @@ proc::Process* app::launch(String id) {
 
     process->setCleanupHandler(processCleanupHandler);
 
+    appProcesses.push(process);
+
+    if (activate) {
+        activeProcessStack.push(process);
+    }
+
     return process;
+}
+
+proc::Process* app::getRunningProcess(String id) {
+    appProcesses.start();
+
+    while (auto processPtr = appProcesses.next()) {
+        auto state = (app::ProcessTaskState*)processPtr->taskState;
+
+        if (state->id == id) {
+            return processPtr;
+        }
+    }
+
+    return nullptr;
+}
+
+app::Element* app::switchToProcess(proc::Process* processPtr, bool switchToActiveScreen) {
+    if (activeProcessStack[-1] != processPtr) {
+        auto stackIndex = activeProcessStack.indexOf(processPtr);
+
+        if (stackIndex >= 0) {
+            activeProcessStack.remove(stackIndex);
+        }
+
+        activeProcessStack.push(processPtr);
+    }
+
+    auto screenToShow = ((app::ProcessTaskState*)processPtr->taskState)->activeScreen;
+
+    if (switchToActiveScreen && screenToShow) {
+        lv_scr_load(screenToShow->object);
+    }
+
+    return screenToShow;
+}
+
+proc::Process* app::getActiveProcess() {
+    return activeProcessStack[-1];
+}
+
+app::Element* app::goBackToPreviousActiveProcess(bool switchToActiveScreen) {
+    if (activeProcessStack.length() <= 1) {
+        return nullptr;
+    }
+
+    activeProcessStack.pop();
+
+    return app::switchToProcess(activeProcessStack[-1], switchToActiveScreen);
+}
+
+proc::Process* app::launchOrSwitchToProcess(String id, bool activate) {
+    auto processPtr = app::getRunningProcess(id);
+
+    if (!processPtr) {
+        processPtr = launch(id, false);
+    }
+
+    if (!processPtr) {
+        return nullptr;
+    }
+
+    if (activate) {
+        app::switchToProcess(processPtr, true);
+    }
+
+    return processPtr;
 }
 
 void app::dispatchEvent(app::EventData eventData) {
@@ -171,13 +295,13 @@ void app::dispatchEvent(app::EventData eventData) {
 }
 
 void app::dispatchEventHandler(lv_event_t* event) {
-    int elementId = *(static_cast<int*>(lv_event_get_user_data(event)));
+    auto target = *(static_cast<app::GlobalElementReference*>(lv_event_get_user_data(event)));
 
     switch (lv_event_get_code(event)) {
         case LV_EVENT_CLICKED:
             dispatchEvent((EventData) {
                 .type = EventType::EVENT_TYPE_CLICK,
-                .targetId = elementId
+                .target = target
             });
             break;
 

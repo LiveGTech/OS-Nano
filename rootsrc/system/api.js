@@ -301,13 +301,25 @@ nano.hello = function() {
     classTest.eachArg(...["a", "b", "c"]);
 };
 
+nano.launch = function(appId, canSwitchToLaunched) {
+    _nano_launch(appId, canSwitchToLaunched || false);
+};
+
+nano.back = function() {
+    _nano_back(false);
+};
+
+nano.close = function() {
+    _nano_back(true);
+};
+
+var close = nano.close;
+
 nano.render = function() {
     for (var i = 0; i < arguments.length; i++) {
         arguments[i]._register();
     }
 };
-
-
 
 nano.theme = {};
 

@@ -7027,9 +7027,9 @@ var stackRestore = createExportWrapper('stackRestore');
 var stackAlloc = createExportWrapper('stackAlloc');
 var _emscripten_stack_get_current = () => (_emscripten_stack_get_current = wasmExports['emscripten_stack_get_current'])();
 var dynCall_jiji = Module['dynCall_jiji'] = createExportWrapper('dynCall_jiji');
-var ___emscripten_embedded_file_data = Module['___emscripten_embedded_file_data'] = 180904;
-var ___start_em_js = Module['___start_em_js'] = 199804;
-var ___stop_em_js = Module['___stop_em_js'] = 200231;
+var ___emscripten_embedded_file_data = Module['___emscripten_embedded_file_data'] = 181840;
+var ___start_em_js = Module['___start_em_js'] = 200764;
+var ___stop_em_js = Module['___stop_em_js'] = 201191;
 function invoke_ii(index,a1) {
   var sp = stackSave();
   try {
