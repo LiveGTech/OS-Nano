@@ -81,6 +81,7 @@ namespace app {
         timing::Timestamp startTimestamp;
         dataTypes::List<Element> ownedElements;
         Element* activeScreen;
+        dataTypes::List<EventData> eventsToProcess;
         dataTypes::List<ElementStyleRule> elementStyleRules;
     };
 

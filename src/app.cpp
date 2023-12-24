@@ -18,7 +18,6 @@
 #include "api.h"
 
 char* apiCodeCharArray;
-auto eventsToProcess = dataTypes::List<app::EventData>();
 auto appProcesses = dataTypes::List<proc::Process>();
 auto activeProcessStack = dataTypes::List<proc::Process>();
 
@@ -69,35 +68,19 @@ void processTask(proc::Process* processPtr) {
     duk_call(ctx, 1);
     duk_pop(ctx);
 
-    eventsToProcess.start();
+    state->eventsToProcess.start();
 
-    auto processedEvents = dataTypes::List<app::EventData>();
-
-    while (auto event = eventsToProcess.next()) {
-        if (event->target.processPtr != processPtr) {
-            continue;
-        }
-
+    while (auto event = state->eventsToProcess.next()) {
         duk_get_global_string(ctx, "_nano_processEvent");
         duk_push_int(ctx, event->type);
         duk_push_int(ctx, event->target.elementId);
         duk_call(ctx, 2);
         duk_pop(ctx);
 
-        processedEvents.push(event);
-    }
-
-    while (auto event = processedEvents.shift()) {
-        auto eventIndex = eventsToProcess.indexOf(event);
-
-        if (eventIndex >= 0) {
-            eventsToProcess.remove(eventIndex);
-        }
-
         discard<app::EventData>(event);
     }
 
-    processedEvents.empty();
+    state->eventsToProcess.empty();
 
     if (state->wantsToStop) {
         processPtr->stopAndDiscard();
@@ -113,6 +96,8 @@ void processCleanupHandler(proc::Process* processPtr) {
     while (auto element = state->ownedElements.shift()) {
         lv_obj_del_async(element->object);
     }
+
+    state->eventsToProcess.empty();
 
     while (auto styleRule = state->elementStyleRules.shift()) {
         lv_style_reset(&(styleRule->style));
@@ -182,6 +167,7 @@ proc::Process* app::launch(String id, bool activate) {
     processTaskState->startTimestamp = timing::getCurrentTime();
     processTaskState->ownedElements = dataTypes::List<app::Element>();
     processTaskState->activeScreen = nullptr;
+    processTaskState->eventsToProcess = dataTypes::List<app::EventData>();
     processTaskState->elementStyleRules = dataTypes::List<app::ElementStyleRule>();
 
     file->close();
@@ -291,7 +277,9 @@ proc::Process* app::launchOrSwitchToProcess(String id, bool activate) {
 }
 
 void app::dispatchEvent(app::EventData eventData) {
-    eventsToProcess.push(store<app::EventData>(eventData));
+    auto state = (app::ProcessTaskState*)eventData.target.processPtr->taskState;
+
+    state->eventsToProcess.push(store<app::EventData>(eventData));
 }
 
 void app::dispatchEventHandler(lv_event_t* event) {
