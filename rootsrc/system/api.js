@@ -323,7 +323,7 @@ nano.render = function() {
 
 nano.theme = {};
 
-// @source https://stackoverflow.com/a/9493060
+// @source reference https://stackoverflow.com/a/9493060
 
 nano.theme.hueToRgb = function(p, q, t) {
     if (t < 0) {
