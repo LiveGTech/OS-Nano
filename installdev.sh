@@ -9,7 +9,7 @@
 
 npm install -g terser
 
-python3 -c "$(curl -fsSL https://raw.githubusercontent.com/platformio/platformio/master/scripts/get-platformio.py)"
+python3 -c "$(curl -fsSL https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py)"
 
 pushd installdev
     rm -rf duktape
